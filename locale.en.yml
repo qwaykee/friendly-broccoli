@@ -1,0 +1,17 @@
+start-hello: "Hello!"
+
+new-already-running-journey: "You already have a running journey, stop it with /check before creating a new one."
+new-ask-streak: "Please enter your current streak in number of days (or /cancel):"
+new-not-a-number: "You didn't type a number, please rerun the command"
+new-ask-rank: "So you've started your journey on %v! What rank system would you like to use?"
+new-callback-success: "*Journey created*\nRank: %v\nDays: %v\nStart: %v\nRank system: %v\nYou can now /check-in"
+
+check-already-checked-in: "You already checked-in 3 times today, please wait tomorrow before checking-in"
+check-relapsebtn-yes: "Yes, I relapsed"
+check-relapsebtn-no: "No, continue"
+check-ask-relapsed: "You'll do better next time, please enter the reason of your relapse (or /cancel):"
+
+err-callback: "Error with button"
+
+err-no-message-received: "No message received before the timeout"
+err-command-canceled: "Command canceled"

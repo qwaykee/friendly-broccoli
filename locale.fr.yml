@@ -1,0 +1,17 @@
+start-hello: "Bonjour!"
+
+new-already-running-journey: "Vous avez déjà un voyage en cours, arrêtez-le avec /check avant d'en créer un nouveau."
+new-ask-streak: "Veuillez entrer le nombre de jour déjà effectués (ou /cancel pour annuler):"
+new-not-a-number: "Vous n'avez pas entré un nombre, veuillez réexécuter la commande"
+new-ask-rank: "Vous avez commencé votre voyage le %v! Quel système de grade voulez-vous utiliser?"
+new-callback-success: "*Voyage créé*\nGrade: %v\nJours: %v\nDébut: %v\nSystème de grade: %v\nVous pouvez maintenant pointer (/check)!"
+
+check-already-checked-in: "Vous avez déjà pointé 3 fois aujourd'hui, veuillez attendre demain avant de pointer"
+check-relapsebtn-yes: "Oui, j'ai craqué"
+check-relapsebtn-no: "Non, continuer"
+check-ask-relapsed: "Vous ferez mieux la prochaine fois, veuillez entrer la raison de cette rechute (ou /cancel pour annuler):"
+
+err-callback: "Erreur avec le boutton"
+
+err-no-message-received: "Pas de message reçu dans le temps imparti"
+err-command-canceled: "Commande annulée"
