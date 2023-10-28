@@ -6,12 +6,46 @@ new-not-a-number: "Vous n'avez pas entré un nombre, veuillez réexécuter la co
 new-ask-rank: "Vous avez commencé votre voyage le %v! Quel système de grade voulez-vous utiliser?"
 new-callback-success: "*Voyage créé*\nGrade: %v\nJours: %v\nDébut: %v\nSystème de grade: %v\nVous pouvez maintenant pointer (/check)!"
 
+check-ask-relapsed: "Bon retour, as-tu craqué aujourd'hui?"
 check-already-checked-in: "Vous avez déjà pointé 3 fois aujourd'hui, veuillez attendre demain avant de pointer"
-check-relapsebtn-yes: "Oui, j'ai craqué"
-check-relapsebtn-no: "Non, continuer"
-check-ask-relapsed: "Vous ferez mieux la prochaine fois, veuillez entrer la raison de cette rechute (ou /cancel pour annuler):"
+check-no-journey: "Vous n'avez pas de voyage en cours, veuillez en faire un avant de pointer (/new)"
+check-button-relapsed: "Oui, j'ai craqué"
+check-button-survived: "Non, continuer"
 
-err-callback: "Erreur avec le boutton"
+relapsed: "Vous ferez mieux la prochaine fois, veuillez entrer la raison de cette rechute (ou /cancel pour annuler):"
+relapsed-done: "D'accord... Je suis désolé de voir la fin de ce voyage, voulez-vous en recommencer un? (/new)"
+
+survived-ask-note: "Content d'entendre ça! Sur une échelle de 1 à 10, comment votre journée s'est passée?"
+survived-ask-entry: "Compris! Vous pouvez taper votre entrée maintenant (comment vous sentez-vous, qu'avez-vous fait aujourd'hui...)"
+survived-ask-public: "Très bien! Votre entrée a été enregistrée. Vous pouvez la voir à n'importe quel moment dans votre compte (/account)! Voulez-vous la rendre publique?"
+survived-button-public: "Oui, rendez-la publique"
+survived-button-private: "Non, rendez-la privée"
+survived-saved: "*Entrée créée*\nType: %v\nNote: %v\nTexte: %v\nLa retrouver sur: %v"
+
+help: "*Commandes*
+      \n/new • Démarrer un nouveau voyage
+      \n/check • Pointer pour le voyage en cours
+      \n/motivation • Envoie un média motivant
+      \n/ranks • Liste les différents systèmes de grades
+      \n/ranks système • Liste en entier le système de grade sélectionné
+      \n/profile • Voir son profil public
+      \n/profile @utilisateur • Voir le profil public d'une personne
+      \n/account • Voir ses informations personnelles et ses paramètres
+      \n
+      \n*Statistiques*
+      \nUtilisateurs: %v
+      \nNombre de message: %v
+      \nEn ligne depuis le %v
+      \n
+      \n*À propos*
+      \nFait par @qwaykee
+      \nCanal du bot: t.me/
+      \nCanal personnel: t.me/
+      "
 
 err-no-message-received: "Pas de message reçu dans le temps imparti"
 err-command-canceled: "Commande annulée"
+
+task-cta: "Réécris /task quand vous avez fini!"
+task-done: "Bien joué soldat! Vous avez gagné %v points!"
+task-10-pushups: "Fait 10 pompes"

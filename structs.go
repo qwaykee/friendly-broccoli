@@ -12,7 +12,7 @@ type Config struct {
 	Database 	string
 	Commands 	map[string]string
 	Ranks 		map[string]Rank
-	Tasks 		map[int]string
+	Tasks 		map[int]TaskData
 }
 
 type Rank struct {
@@ -20,6 +20,11 @@ type Rank struct {
 	Name 		string
 	Score 		int
 	Levels 		map[int]string
+}
+
+type TaskData struct {
+	Points 		int
+	Task 		string
 }
 
 type Journey struct {
@@ -33,7 +38,7 @@ type Journey struct {
 
 type Entry struct {
 	gorm.Model
-	JourneyID			int
+	UserID 				int64
 	IsPublic 			bool
 	Note				int
 	Text				string 		`gorm:"size:4096"`
@@ -41,6 +46,7 @@ type Entry struct {
 
 type Task struct {
 	gorm.Model
-	JourneyID			int
+	UserID				int64
 	TaskID 				int
+	IsDone 				bool
 }

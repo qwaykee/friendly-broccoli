@@ -6,12 +6,46 @@ new-not-a-number: "You didn't type a number, please rerun the command"
 new-ask-rank: "So you've started your journey on %v! What rank system would you like to use?"
 new-callback-success: "*Journey created*\nRank: %v\nDays: %v\nStart: %v\nRank system: %v\nYou can now /check-in"
 
+check-ask-relapsed: "Welcome back, did you relapse today?"
 check-already-checked-in: "You already checked-in 3 times today, please wait tomorrow before checking-in"
-check-relapsebtn-yes: "Yes, I relapsed"
-check-relapsebtn-no: "No, continue"
-check-ask-relapsed: "You'll do better next time, please enter the reason of your relapse (or /cancel):"
+check-no-journey: "You don't have a running journey, please make one before checking-in (/new)"
+check-button-relapsed: "Yes, I relapsed"
+check-button-survived: "No, continue"
 
-err-callback: "Error with button"
+relapsed: "You'll do better next time, please enter the reason of your relapse (or /cancel):"
+relapsed-done: "Alright... I'm sorry to see the end of this journey, maybe start a /new one?"
+
+survived-ask-note: "Glad to hear that! On a scale of 1-10, how do you feel about today?"
+survived-ask-entry: "Got it! You can type your entry now (how do you feel, what did you do today...)"
+survived-ask-public: "Alright! Your entry has been saved. You can check it anytime in your /account! Would you like to make it public?"
+survived-button-public: "Yes, make it public"
+survived-button-private: "No, make it private"
+survived-saved: "*Entry created*\nType: %v\nNote: %v\nText: %v\nSee it on my %v"
+
+help: "*Commands*
+      \n/new • Start a new journey
+      \n/check • Check-in for your current journey
+      \n/motivation • Send a motivational media
+      \n/ranks • List the ranks systems
+      \n/ranks system • List the full selected rank system
+      \n/profile • See your public profile
+      \n/profile @user • See someone else's profile
+      \n/account • See your private informations and settings
+      \n
+      \n*Statistics*
+      \nUsers: %v
+      \nMessage count: %v
+      \nUp since %v
+      \n
+      \n*About*
+      \nMade by @qwaykee
+      \nBot's channel: t.me/
+      \nPersonal channel: t.me/
+      "
 
 err-no-message-received: "No message received before the timeout"
 err-command-canceled: "Command canceled"
+
+task-cta: "Retype /task when you are done!"
+task-done: "Well done soldier! You've earned %v points!"
+task-10-pushups: "Do 10 pushups"
