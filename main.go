@@ -8,6 +8,7 @@ import (
 	"github.com/qwaykee/cauliflower"
 	"gopkg.in/telebot.v3"
 	"gopkg.in/yaml.v3"
+	"github.com/schollz/closestmatch"
 
 	"embed"
 	"golang.org/x/exp/maps"
@@ -17,6 +18,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"path/filepath"
+	"io/fs"
 )
 
 var (
@@ -25,11 +28,13 @@ var (
 	db        *gorm.DB
 	b         *telebot.Bot
 	i         *cauliflower.Instance
+	cm        *closestmatch.ClosestMatch
 
-	messageCount  int
-	chatToChannel = make(map[int64](*chan string))
-	rankButtons   = []telebot.Btn{}
-	start         time.Time
+	messageCount          int
+	chatToChannel         = make(map[int64](*chan string))
+	rankButtons           = []telebot.Btn{}
+	motivationsCategories = make(map[string]bool)
+	start                 time.Time
 
 	//go:embed locale.*.yml
 	localesFS embed.FS
@@ -42,6 +47,36 @@ func init() {
 	// load config
 	if err := yaml.Unmarshal(configFile, &config); err != nil {
 		log.Fatal(err)
+	}
+
+	// load motivation images
+	config.Motivations = make(map[string]Motivation)
+	if err := filepath.Walk(config.MotivationPath, func(path string, file fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !file.IsDir() {
+			splitted := strings.Split(file.Name(), ".")
+			id, category, language, extension := splitted[0], splitted[1], splitted[2], splitted[3]
+
+			if _, ok := motivationsCategories[category]; !ok {
+				motivationsCategories[category] = true
+			}
+
+			config.Motivations[id] = Motivation{
+				ID: id,
+				Category: category,
+				Language: language,
+				Extension: extension,
+				Path: path,
+			}
+		}
+
+
+		return nil
+	}); err != nil {
+		log.Fatalf("filepath: %v", err)
 	}
 
 	// initialize i18n
@@ -103,6 +138,9 @@ func init() {
 	if err != nil {
 		log.Fatalf("cauliflower: %v", err)
 	}
+
+	// initialize closest match
+	cm = closestmatch.New(append(maps.Keys(config.Motivations), maps.Keys(motivationsCategories)...), []int{2})
 
 	start = time.Now()
 }
@@ -233,7 +271,7 @@ func main() {
 		})
 
 		b.Handle(&survived, func(c telebot.Context) error {
-			noteButtons := sliceMarkup(5, [10]string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"})
+			noteButtons := sliceMarkup(5, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"})
 
 			_, err := b.Edit(c.Message(), localizer.Tr(c.Sender().LanguageCode, "survived-ask-note"), noteButtons)
 
@@ -384,7 +422,36 @@ func main() {
 	})
 
 	b.Handle("/motivation", func(c telebot.Context) error {
-		return nil
+		motivations := make(map[string]Motivation)
+
+		if len(c.Args()) > 0 {
+			arg := c.Args()[0]
+
+			if _, ok := motivationsCategories[arg]; ok {
+			    for _, m := range config.Motivations {
+			        if m.Category == arg {
+			            motivations[m.ID] = m
+			        }
+			    }
+			} else if m, ok := config.Motivations[arg]; ok {
+				return c.Send(&telebot.Photo{
+					File: telebot.FromDisk(m.Path),
+					Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
+				})
+			} else {
+				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-error", cm.Closest(arg)))
+			}
+		} else {
+			motivations = config.Motivations
+		}
+
+		motivationsKeys := maps.Keys(motivations)
+		m := motivations[motivationsKeys[rand.Intn(len(motivations))]]
+
+		return c.Send(&telebot.Photo{
+			File: telebot.FromDisk(m.Path),
+			Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
+		})
 	})
 
 	b.Handle("/ranks", func(c telebot.Context) error {

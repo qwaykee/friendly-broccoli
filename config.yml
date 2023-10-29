@@ -2,6 +2,7 @@ token: '6077995727:AAFW2TmZHCDePSt4wMeKxfcK3G3ji2Hfbm0'
 timeout: 10
 setCommands: False
 database: ':memory:'
+motivationPath: 'motivation'
 
 commands:
   start: 'Start the bot'

@@ -53,3 +53,6 @@ task-done: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: %v\nBien joué soldat!
 task-unfinished: "Tu as déjà une tâche à faire, finis-la avant d'en commencer une autre"
 task-button: "J'ai fini"
 task-10-pushups: "Fait 10 pompes"
+
+motivation-caption: "📷 %v (%v/%v)"
+motivation-error: "Désolé, je n'ai pas trouvé ce que tu recherches, voulais-tu dire %v?"

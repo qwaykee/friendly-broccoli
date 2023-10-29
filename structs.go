@@ -6,13 +6,15 @@ import(
 )
 
 type Config struct {
-	Token 		string
-	Timeout 	int
-	SetCommands bool
-	Database 	string
-	Commands 	map[string]string
-	Ranks 		map[string]Rank
-	Tasks 		map[int]TaskData
+	Token 		         string
+	Timeout 	         int
+	SetCommands          bool
+	Database 	         string
+	MotivationPath       string `yaml:"motivationPath"`
+	Commands 	         map[string]string
+	Ranks 		         map[string]Rank
+	Tasks 		         map[int]TaskData
+	Motivations          map[string]Motivation
 }
 
 type Rank struct {
@@ -25,6 +27,14 @@ type Rank struct {
 type TaskData struct {
 	Points 		int
 	Task 		string
+}
+
+type Motivation struct {
+	ID          string
+	Category    string
+	Language    string
+	Extension   string
+	Path        string
 }
 
 type Journey struct {

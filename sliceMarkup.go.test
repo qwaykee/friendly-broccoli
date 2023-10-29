@@ -1,0 +1,27 @@
+type Parameters struct {
+	Split   int
+	Buttons []string
+	Handler func(c telebot.Context) error
+}
+
+func sliceMarkup(params Parameters) *telebot.ReplyMarkup {
+	var buttons []telebot.Btn
+	markup := b.NewMarkup()
+
+	for _, text := range params.Buttons {
+		button := markup.Data(text, randomString(16), text)
+		buttons = append(buttons, button)
+
+		if params.Handler != nil {
+			b.Handle(&button, params.Handler)
+		}
+	}
+
+	if params.Split != 0 {
+		markup.Inline(markup.Split(params.Split, buttons)...)
+	} else {
+		markup.Inline(markup.Row(buttons...))
+	}
+
+	return markup
+}
