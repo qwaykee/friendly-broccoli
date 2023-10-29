@@ -4,7 +4,7 @@ new-already-running-journey: "Tu as déjà un voyage en cours, arrête-le avec /
 new-ask-streak: "Entre le nombre de jour déjà effectués (ou /cancel pour annuler):"
 new-not-a-number: "Tu n'as pas entré un nombre, réexécute la commande (/new)"
 new-ask-rank: "Tu as commencé ton voyage le %v! Quel système de grade veux-tu utiliser?"
-new-callback-success: "*Voyage créé*\nGrade: %v\nJours: %v\nDébut: %v\nSystème de grade: %v\nTu peux maintenant pointer (/check)!"
+new-saved: "*⛰️ Voyage créé*\nGrade: %v\nSystème de grade: %v\nDébut: %v (%v jours)\nTu peux maintenant pointer (/check)!"
 
 check-ask-relapsed: "Bon retour, as-tu craqué aujourd'hui?"
 check-already-checked-in: "Tu as déjà pointé 3 fois aujourd'hui, attends demain avant de re-pointer"
@@ -13,14 +13,16 @@ check-button-relapsed: "Oui, j'ai craqué"
 check-button-survived: "Non, continuer"
 
 relapsed: "Tu feras mieux la prochaine fois, entres la raison de cette rechute (ou /cancel pour annuler):"
-relapsed-done: "D'accord... Je suis désolé de voir la fin de ce voyage, veux-tu en recommencer un? (/new)"
+relapsed-saved: "D'accord... Je suis désolé de voir la fin de ce voyage, veux-tu en recommencer un? (/new)"
 
 survived-ask-note: "Content d'entendre ça! Sur une échelle de 1 à 10, comment ta journée s'est passée?"
 survived-ask-entry: "Compris! Tu peux taper ton entrée maintenant (comment tu te sens, qu'as-tu fait aujourd'hui...)"
 survived-ask-public: "Très bien! Ton entrée a été enregistrée. Tu peux la voir à n'importe quel moment dans ton compte (/account)! Veux-tu la rendre publique?"
 survived-button-public: "Oui, rends-la publique"
 survived-button-private: "Non, rends-la privée"
-survived-saved: "*Entrée créée*\nType: %v\nNote: %v\nTexte: %v\nLa retrouver sur: %v"
+survived-private: "privée"
+survived-public: "publique"
+survived-saved: "*📝 Entrée %v créée (%v/10)*\nLa retrouver dans %v\n\n`%v`"
 
 help: "*Commandes*
       \n/new • Démarrer un nouveau voyage
@@ -46,8 +48,8 @@ help: "*Commandes*
 err-no-message-received: "Pas de message reçu dans le temps imparti"
 err-command-canceled: "Commande annulée"
 
-task-cta: "*Tâche:* %v\nClique sur le bouton quand tu as fini!"
-task-done: "*Tâche:* %v\nBien joué soldat! Tu as gagné %v points!"
+task-cta: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: Non fini\nClique sur le bouton quand tu as fini!"
+task-done: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: %v\nBien joué soldat! Tu as gagné %v points!"
 task-unfinished: "Tu as déjà une tâche à faire, finis-la avant d'en commencer une autre"
 task-button: "J'ai fini"
 task-10-pushups: "Fait 10 pompes"

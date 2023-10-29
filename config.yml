@@ -1,6 +1,6 @@
 token: '6077995727:AAFW2TmZHCDePSt4wMeKxfcK3G3ji2Hfbm0'
 timeout: 10
-setCommands: True
+setCommands: False
 database: ':memory:'
 
 commands:
@@ -12,6 +12,7 @@ commands:
   ranks: 'List the ranks systems'
   profile: 'See your public profile'
   account: 'See your private informations and settings'
+  help: 'See commands help, statistics and bot channel'
 
 ranks:
   'original':

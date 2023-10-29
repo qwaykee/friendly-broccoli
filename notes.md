@@ -73,3 +73,16 @@ Task:
 - Journey id (foreign key) - int
 - Date (autodate) - time.Time
 - Task id
+
+# Metadata
+
+Commands:
+start - Start the bot
+new - Start a new journey
+check - Check-in for your current journey
+motivation - Send a motivational media
+task - Send a task to achieve
+ranks - List the ranks systems
+profile - See your public profile
+account - See your private informations and settings
+help - See commands help, statistics and bot channel

@@ -4,7 +4,7 @@ new-already-running-journey: "You already have a running journey, stop it with /
 new-ask-streak: "Please enter your current streak in number of days (or /cancel):"
 new-not-a-number: "You didn't type a number, please rerun the command"
 new-ask-rank: "So you've started your journey on %v! What rank system would you like to use?"
-new-callback-success: "*Journey created*\nRank: %v\nDays: %v\nStart: %v\nRank system: %v\nYou can now /check-in"
+new-saved: "*⛰️ Journey created*\nRank: %v\nRank system: %v\nStart: %v (%v days)\nYou can now /check-in"
 
 check-ask-relapsed: "Welcome back, did you relapse today?"
 check-already-checked-in: "You already checked-in 3 times today, please wait tomorrow before checking-in"
@@ -13,14 +13,16 @@ check-button-relapsed: "Yes, I relapsed"
 check-button-survived: "No, continue"
 
 relapsed: "You'll do better next time, please enter the reason of your relapse (or /cancel):"
-relapsed-done: "Alright... I'm sorry to see the end of this journey, maybe start a /new one?"
+relapsed-saved: "Alright... I'm sorry to see the end of this journey, maybe start a /new one?"
 
 survived-ask-note: "Glad to hear that! On a scale of 1-10, how do you feel about today?"
 survived-ask-entry: "Got it! You can type your entry now (how do you feel, what did you do today...)"
 survived-ask-public: "Alright! Your entry has been saved. You can check it anytime in your /account! Would you like to make it public?"
 survived-button-public: "Yes, make it public"
 survived-button-private: "No, make it private"
-survived-saved: "*Entry created*\nType: %v\nNote: %v\nText: %v\nSee it on my %v"
+survived-private: "Private"
+survived-public: "Public"
+survived-saved: "*📝 %v entry created (%v/10)*\nSee it on my %v\n\n`%v`"
 
 help: "*Commands*
       \n/new • Start a new journey
@@ -46,8 +48,8 @@ help: "*Commands*
 err-no-message-received: "No message received before the timeout"
 err-command-canceled: "Command canceled"
 
-task-cta: "*Task:* %v\nClick on the button when you're done!"
-task-done: "*Task:* %v\nWell done soldier! You've earned %v points!"
+task-cta: "*🎖️ Task: %v*\nGiven at: %v\nDone at: Not done\nClick on the button when you're done!"
+task-done: "*🎖️ Task: %v*\nGiven at: %v\nDone at: %v\nWell done soldier! You've earned %v points!"
 task-unfinished: "You already have a task to complete, finish it before starting a new one"
 task-button: "I'm done"
 task-10-pushups: "Do 10 pushups"
