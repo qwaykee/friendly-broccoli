@@ -473,9 +473,15 @@ func main() {
 
 				for _, image := range p {
 					album = append(album, &telebot.Photo{File: telebot.FromDisk(image.Path)})
+					if len(album) == 10 {
+						c.SendAlbum(album)
+						album = telebot.Album{}
+					}
 				}
 
-				c.SendAlbum(album)
+				if len(album) > 0 {
+					c.SendAlbum(album)
+				}
 				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-pack", p[0].Pack, p[0].Category, p[0].Language))
 			} else if arg == "list" {
 				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-list", motivationsCategories))
@@ -494,9 +500,16 @@ func main() {
 
 			for _, image := range motivationsPacks[m.Pack] {
 				album = append(album, &telebot.Photo{File: telebot.FromDisk(image.Path)})
+				if len(album) == 10 {
+					c.SendAlbum(album)
+					album = telebot.Album{}
+				}
 			}
 
-			c.SendAlbum(album)
+			if len(album) > 0 {
+				c.SendAlbum(album)
+			}
+
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-pack", m.Pack, m.Category, m.Language))
 		}
 
