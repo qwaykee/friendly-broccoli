@@ -36,6 +36,10 @@ Commands:
 - /ranks [rank] -> full rank list
 - /help -> command list, bot channel, personal channel, stats (users, uptime, messages count) contact, donation
 
+Motivation filename:
+- id.category.languagecode.extension
+- id must be unique
+
 Score system:
 - 2 points/day
 - 2-10 points/task (3 task max/day)
