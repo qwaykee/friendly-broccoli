@@ -16,7 +16,7 @@ FriendlyBroccolli golang
 [x] /new
 [x] /check
 [x] /task
-[ ] /motivation
+[x] /motivation
 [ ] /profile [@user=me]
 [ ] /account
 [x] /ranks
@@ -29,7 +29,10 @@ Commands:
 - /new -> new journey (days, save to db, rank system, save to db)
 - /check -> new entry (max 3/day, relapse?, note, text, public?, save to db)
 - /task -> random task to complete (completed? -> save to db)
-- /motivation -> random image or text
+- /motivation -> random image
+- /motivation list -> list categories
+- /motivation [id] -> image id
+- /motivation [category] -> random image from category
 - /profile [@user=me] -> total score, current journey (start, rank, next rank, n. entries, n. tasks, score), all journeys (average length, total days, total entries), public entries (callback query button)
 - /account -> score, rank, next rank, all entries, activity (new, check (id, note, relapse?), task), activity/journey, download
 - /ranks -> ranks system overview
@@ -39,6 +42,7 @@ Commands:
 Motivation filename:
 - id.category.languagecode.extension
 - id must be unique
+- category must not be equal to "list"
 
 Score system:
 - 2 points/day

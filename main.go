@@ -33,7 +33,7 @@ var (
 	messageCount          int
 	chatToChannel         = make(map[int64](*chan string))
 	rankButtons           = []telebot.Btn{}
-	motivationsCategories = make(map[string]bool)
+	motivationsCategories = make(map[string]int)
 	start                 time.Time
 
 	//go:embed locale.*.yml
@@ -61,7 +61,7 @@ func init() {
 			id, category, language, extension := splitted[0], splitted[1], splitted[2], splitted[3]
 
 			if _, ok := motivationsCategories[category]; !ok {
-				motivationsCategories[category] = true
+				motivationsCategories[category] += 1
 			}
 
 			config.Motivations[id] = Motivation{
@@ -438,6 +438,8 @@ func main() {
 					File: telebot.FromDisk(m.Path),
 					Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
 				})
+			} else if arg == "list" {
+				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-list", motivationsCategories))
 			} else {
 				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-error", cm.Closest(arg)))
 			}

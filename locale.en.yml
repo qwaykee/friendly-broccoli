@@ -28,6 +28,8 @@ help: "*Commands*
       \n/new • Start a new journey
       \n/check • Check-in for your current journey
       \n/motivation • Send a motivational media
+      \n/motivation list • List the categories of media
+      \n/motivation category/id • Send a motivational media from the category/the selected media
       \n/ranks • List the ranks systems
       \n/ranks system • List the full selected rank system
       \n/profile • See your public profile
@@ -55,4 +57,5 @@ task-button: "I'm done"
 task-10-pushups: "Do 10 pushups"
 
 motivation-caption: "📷 %v (%v/%v)"
+motivation-list: "*Categories:*\n{{ range $category, $number := . }}{{ $category }}: {{ $number }} pictures\n{{ end }}"
 motivation-error: "Sorry, I didn't find what you're looking for, did you mean %v?"

@@ -28,6 +28,8 @@ help: "*Commandes*
       \n/new • Démarrer un nouveau voyage
       \n/check • Pointer pour le voyage en cours
       \n/motivation • Envoie un média motivant
+      \n/motivation list • Liste les catégories de médias
+      \n/motivation category/id • Envoie un média motivant de la catégorie/le média choisi
       \n/ranks • Liste les différents systèmes de grades
       \n/ranks système • Liste en entier le système de grade sélectionné
       \n/profile • Voir son profil public
@@ -55,4 +57,5 @@ task-button: "J'ai fini"
 task-10-pushups: "Fait 10 pompes"
 
 motivation-caption: "📷 %v (%v/%v)"
+motivation-list: "*Categories:*\n{{ range $category, $number := . }}{{ $category }}: {{ $number }} images\n{{ end }}"
 motivation-error: "Désolé, je n'ai pas trouvé ce que tu recherches, voulais-tu dire %v?"
