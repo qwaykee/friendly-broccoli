@@ -5,10 +5,10 @@ FriendlyBroccolli golang
 [x] Middleware message count
 [x] Bot.SetCommands()
 [x] config.yml
-[x] README.md
-[ ] Add inline keyboard (/new)
-[ ] Finish getRank()
-[ ] Remove replace in go.mod
+[ ] README.md
+[x] Add inline keyboard (/new)
+[x] Finish getRank()
+[x] Remove replace in go.mod
 [ ] Remove comment when issue fixed (i18n.SetDefaultLanguage("en-US"))
 [x] Fix cauliflower and integrate
 [ ] Remove db logger
@@ -40,8 +40,9 @@ Commands:
 - /help -> command list, bot channel, personal channel, stats (users, uptime, messages count) contact, donation
 
 Motivation filename:
+- pack.packplace.category.languagecode.extension
 - id.category.languagecode.extension
-- id must be unique
+- id/pack must be unique
 - category must not be equal to "list"
 
 Score system:

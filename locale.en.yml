@@ -56,6 +56,7 @@ task-unfinished: "You already have a task to complete, finish it before starting
 task-button: "I'm done"
 task-10-pushups: "Do 10 pushups"
 
-motivation-caption: "📷 %v (%v/%v)"
+motivation-photo: "📷 %v (%v/%v)"
+motivation-pack: "📷 %v (%v/%v)\nFirst image ID: %v"
 motivation-list: "*Categories:*\n{{ range $category, $number := . }}{{ $category }}: {{ $number }} pictures\n{{ end }}"
-motivation-error: "Sorry, I didn't find what you're looking for, did you mean %v?"
+motivation-error: "Sorry, I didn't find what you're looking for, did you mean `/motivation %v`?"

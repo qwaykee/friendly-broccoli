@@ -34,6 +34,7 @@ var (
 	chatToChannel         = make(map[int64](*chan string))
 	rankButtons           = []telebot.Btn{}
 	motivationsCategories = make(map[string]int)
+	motivationsPacks      = make(map[string][]Motivation)
 	start                 time.Time
 
 	//go:embed locale.*.yml
@@ -57,26 +58,53 @@ func init() {
 		}
 
 		if !file.IsDir() {
-			splitted := strings.Split(file.Name(), ".")
-			id, category, language, extension := splitted[0], splitted[1], splitted[2], splitted[3]
+			s := strings.Split(file.Name(), ".")
+			var pack, place, id, category, language, extension string
+			var m Motivation
+			if len(s) > 4 {
+				pack, place, category, language, extension = s[0], s[1], s[2], s[3], s[4]
+				placeInt, err := strconv.Atoi(place)
+				if err != nil {
+					return err
+				}
 
-			if _, ok := motivationsCategories[category]; !ok {
-				motivationsCategories[category] += 1
+				m = Motivation{
+					Pack: pack,
+					PackPlace: placeInt,
+					Category: category,
+					Language: language,
+					Extension: extension,
+					Path: path,
+				}
+
+				motivationsPacks[pack] = append(motivationsPacks[pack], m)
+			} else {
+				id, category, language, extension = s[0], s[1], s[2], s[3]
+
+				m = Motivation{
+					ID: id,
+					Category: category,
+					Language: language,
+					Extension: extension,
+					Path: path,
+				}
 			}
 
-			config.Motivations[id] = Motivation{
-				ID: id,
-				Category: category,
-				Language: language,
-				Extension: extension,
-				Path: path,
-			}
+			motivationsCategories[category] += 1
+
+			config.Motivations[id] = m
 		}
 
 
 		return nil
 	}); err != nil {
 		log.Fatalf("filepath: %v", err)
+	}
+
+	for _, pack := range motivationsPacks {
+		sort.Slice(pack, func(i, j int) bool {
+		    return pack[i].PackPlace < pack[j].PackPlace
+		})
 	}
 
 	// initialize i18n
@@ -140,7 +168,9 @@ func init() {
 	}
 
 	// initialize closest match
-	cm = closestmatch.New(append(maps.Keys(config.Motivations), maps.Keys(motivationsCategories)...), []int{2})
+	matches := append(maps.Keys(config.Motivations), maps.Keys(motivationsCategories)...)
+	matches = append(matches, maps.Keys(motivationsPacks)...)
+	cm = closestmatch.New(matches, []int{2})
 
 	start = time.Now()
 }
@@ -438,6 +468,15 @@ func main() {
 					File: telebot.FromDisk(m.Path),
 					Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
 				})
+			} else if p, ok := motivationsPacks[arg]; ok {
+				var album telebot.Album
+
+				for _, image := range p {
+					album = append(album, &telebot.Photo{File: telebot.FromDisk(image.Path)})
+				}
+
+				c.SendAlbum(album)
+				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-pack", p[0].Pack, p[0].Category, p[0].Language))
 			} else if arg == "list" {
 				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-list", motivationsCategories))
 			} else {
@@ -450,9 +489,20 @@ func main() {
 		motivationsKeys := maps.Keys(motivations)
 		m := motivations[motivationsKeys[rand.Intn(len(motivations))]]
 
+		if m.Pack != "" {
+			var album telebot.Album
+
+			for _, image := range motivationsPacks[m.Pack] {
+				album = append(album, &telebot.Photo{File: telebot.FromDisk(image.Path)})
+			}
+
+			c.SendAlbum(album)
+			return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-pack", m.Pack, m.Category, m.Language))
+		}
+
 		return c.Send(&telebot.Photo{
 			File: telebot.FromDisk(m.Path),
-			Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
+			Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-photo", m.ID, m.Category, m.Language),
 		})
 	})
 
