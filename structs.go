@@ -47,6 +47,8 @@ type Entry struct {
 type Task struct {
 	gorm.Model
 	UserID				int64
+	ChatID 				int64
+	MessageID 			string
 	TaskID 				int
 	IsDone 				bool
 }

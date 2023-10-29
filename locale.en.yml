@@ -46,6 +46,8 @@ help: "*Commands*
 err-no-message-received: "No message received before the timeout"
 err-command-canceled: "Command canceled"
 
-task-cta: "Retype /task when you are done!"
-task-done: "Well done soldier! You've earned %v points!"
+task-cta: "*Task:* %v\nClick on the button when you're done!"
+task-done: "*Task:* %v\nWell done soldier! You've earned %v points!"
+task-unfinished: "You already have a task to complete, finish it before starting a new one"
+task-button: "I'm done"
 task-10-pushups: "Do 10 pushups"

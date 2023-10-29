@@ -15,7 +15,7 @@ FriendlyBroccolli golang
 [ ] /start
 [x] /new
 [x] /check
-[-] /task
+[x] /task
 [ ] /motivation
 [ ] /profile [@user=me]
 [ ] /account

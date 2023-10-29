@@ -60,6 +60,6 @@ ranks:
       500: 'Sigma'
 
 tasks:
-  1:
+  0:
     points: 3
     task: 'task-10-pushups'

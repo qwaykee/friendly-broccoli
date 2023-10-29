@@ -49,18 +49,18 @@ func init() {
 
 	loader, err := i18n.FS(localesFS, "locale.*.yml")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("loader: %v", err)
 	}
 
 	localizer, err = i18n.New(loader, "en-US", "fr-FR")
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("localizer: %v", err)
 	}
 
 	// initialize database
 	db, err = gorm.Open(sqlite.Open(config.Database), &gorm.Config{PrepareStmt: true})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("gorm: %v", err)
 	}
 
 	db.AutoMigrate(&Journey{}, &Entry{}, &Task{})
@@ -72,7 +72,7 @@ func init() {
 		ParseMode: telebot.ModeMarkdown,
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("telebot: %v", err)
 	}
 
 	if config.SetCommands {
@@ -84,7 +84,7 @@ func init() {
 			})
 		}
 		if err := b.SetCommands(c); err != nil {
-			log.Fatal(err)
+			log.Fatalf("telebot: %v", err)
 		}
 	}
 
@@ -101,7 +101,7 @@ func init() {
 		InstallMiddleware: true,
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("cauliflower: %v", err)
 	}
 
 	start = time.Now()
@@ -109,11 +109,11 @@ func init() {
 
 func main() {
 	// make ranks buttons
-	var ranksButtons telebot.ReplyMarkup
+	var ranksMarkup telebot.ReplyMarkup
 	var buttons []telebot.Btn
 
 	for _, option := range config.Ranks {
-		button := ranksButtons.Data(option.Name, option.Name, option.Name)
+		button := ranksMarkup.Data(option.Name, option.Name, option.Name)
 	    buttons = append(buttons, button)
 
 	    b.Handle(&button, func(c telebot.Context) error {
@@ -144,12 +144,12 @@ func main() {
 	    })
 	}
 
-	ranksButtons.Inline(ranksButtons.Split(2, buttons)...)
+	ranksMarkup.Inline(ranksMarkup.Split(2, buttons)...)
 
 	// initialize check-in buttons
 	var relapsed, survived telebot.Btn
 
-	// Handle message count
+	// handle message count
 	b.Use(func(next telebot.HandlerFunc) telebot.HandlerFunc {
 		return func(c telebot.Context) error {
 			messageCount += 1
@@ -187,7 +187,7 @@ func main() {
 			Start:  start,
 		})
 
-		_, err = b.Edit(msg, text, &ranksButtons)
+		_, err = b.Edit(msg, text, &ranksMarkup)
 		return err
 	})
 
@@ -249,22 +249,73 @@ func main() {
 		var task Task
 
 		if r := db.Where("user_id = ? AND is_done = 0", c.Sender().ID).Find(&task); r.RowsAffected > 0 {
-			task.IsDone = true
+			chat, err := b.ChatByID(task.ChatID)
+			if err != nil {
+				log.Println(err)
+			}
 
-			db.Save(&task)
+			message, err := strconv.Atoi(task.MessageID)
+			if err != nil {
+				log.Println(err)
+			}
 
-			return c.Send(localizer.Tr(c.Sender().LanguageCode, "task-done", config.Tasks[task.TaskID].Points))
+			msg := telebot.Message{
+				ID: message,
+				Chat: chat,
+			}
+
+			_, err = b.Reply(&msg, localizer.Tr(c.Sender().LanguageCode, "task-unfinished"))
+			return err
 		} else {
 			taskID := rand.Intn(len(config.Tasks))
+			taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[taskID].Task)
+
+			text := localizer.Tr(c.Sender().LanguageCode, "task-cta", taskText)
+
+			markup := b.NewMarkup()
+			buttonText := localizer.Tr(c.Sender().LanguageCode, "task-button")
+			button := markup.Data(buttonText, randomString(16))
+
+			b.Handle(&button, func(c telebot.Context) error {
+				var task Task
+
+				if r := db.Where("user_id = ? AND is_done = 0", c.Sender().ID).Find(&task); r.RowsAffected > 0 {
+					task.IsDone = true
+
+					db.Save(&task)
+
+					taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[task.TaskID].Task)
+					taskPoints := config.Tasks[task.TaskID].Points
+
+					text := localizer.Tr(c.Sender().LanguageCode, "task-done", taskText, taskPoints)
+
+					_, err := b.Edit(c.Message(), text)
+					return err
+				}
+
+				return nil
+			})
+
+			markup.Inline(markup.Row(button))
+
+			msg, err := b.Send(c.Chat(), text, markup)
+			if err != nil {
+				log.Println(err)
+			}
 
 			db.Create(&Task{
 				UserID: c.Sender().ID,
+				ChatID: c.Chat().ID,
+				MessageID: strconv.Itoa(msg.ID),
 				TaskID: taskID,
 				IsDone: false,
 			})
-
-			return c.Send(localizer.Tr(c.Sender().LanguageCode, config.Tasks[taskID].Task) + "\n" + localizer.Tr(c.Sender().LanguageCode, "task-cta"))
 		}
+		return nil
+	})
+
+	b.Handle("/motivation" func(c telebot.Context) error {
+		
 	})
 
 	b.Handle(telebot.OnCallback, func(c telebot.Context) error {
@@ -406,4 +457,14 @@ func sliceMarkup(split int, data []string) *telebot.ReplyMarkup {
 	markup.Inline(markup.Split(split, buttons)...)
 
 	return markup
+}
+
+func randomString(n int) string {
+    var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+ 
+    s := make([]rune, n)
+    for i := range s {
+        s[i] = letters[rand.Intn(len(letters))]
+    }
+    return string(s)
 }
