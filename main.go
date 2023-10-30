@@ -482,7 +482,7 @@ func main() {
 					c.SendAlbum(album)
 				}
 
-				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-pack", p[0].Pack, p[0].Category, p[0].Language))
+				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-caption", p[0].Pack, p[0].Category, p[0].Language))
 			} else if arg == "list" {
 				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-list", motivationsCategories))
 			} else {
@@ -510,12 +510,12 @@ func main() {
 				c.SendAlbum(album)
 			}
 
-			return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-pack", m.Pack, m.Category, m.Language))
+			return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.Pack, m.Category, m.Language))
 		}
 
 		return c.Send(&telebot.Photo{
 			File:    telebot.FromDisk(m.Path),
-			Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-photo", m.ID, m.Category, m.Language),
+			Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
 		})
 	})
 
