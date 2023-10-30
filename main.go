@@ -6,20 +6,20 @@ import (
 
 	"github.com/kataras/i18n"
 	"github.com/qwaykee/cauliflower"
+	"github.com/schollz/closestmatch"
 	"gopkg.in/telebot.v3"
 	"gopkg.in/yaml.v3"
-	"github.com/schollz/closestmatch"
 
 	"embed"
 	"golang.org/x/exp/maps"
+	"io/fs"
 	"log"
 	"math/rand"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
 	"time"
-	"path/filepath"
-	"io/fs"
 )
 
 var (
@@ -69,12 +69,12 @@ func init() {
 				}
 
 				m = Motivation{
-					Pack: pack,
+					Pack:      pack,
 					PackPlace: placeInt,
-					Category: category,
-					Language: language,
+					Category:  category,
+					Language:  language,
 					Extension: extension,
-					Path: path,
+					Path:      path,
 				}
 
 				motivationsPacks[pack] = append(motivationsPacks[pack], m)
@@ -82,11 +82,11 @@ func init() {
 				id, category, language, extension = s[0], s[1], s[2], s[3]
 
 				m = Motivation{
-					ID: id,
-					Category: category,
-					Language: language,
+					ID:        id,
+					Category:  category,
+					Language:  language,
 					Extension: extension,
-					Path: path,
+					Path:      path,
 				}
 			}
 
@@ -95,7 +95,6 @@ func init() {
 			config.Motivations[id] = m
 		}
 
-
 		return nil
 	}); err != nil {
 		log.Fatalf("filepath: %v", err)
@@ -103,7 +102,7 @@ func init() {
 
 	for _, pack := range motivationsPacks {
 		sort.Slice(pack, func(i, j int) bool {
-		    return pack[i].PackPlace < pack[j].PackPlace
+			return pack[i].PackPlace < pack[j].PackPlace
 		})
 	}
 
@@ -458,14 +457,14 @@ func main() {
 			arg := c.Args()[0]
 
 			if _, ok := motivationsCategories[arg]; ok {
-			    for _, m := range config.Motivations {
-			        if m.Category == arg {
-			            motivations[m.ID] = m
-			        }
-			    }
+				for _, m := range config.Motivations {
+					if m.Category == arg {
+						motivations[m.ID] = m
+					}
+				}
 			} else if m, ok := config.Motivations[arg]; ok {
 				return c.Send(&telebot.Photo{
-					File: telebot.FromDisk(m.Path),
+					File:    telebot.FromDisk(m.Path),
 					Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
 				})
 			} else if p, ok := motivationsPacks[arg]; ok {
@@ -482,6 +481,7 @@ func main() {
 				if len(album) > 0 {
 					c.SendAlbum(album)
 				}
+
 				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-pack", p[0].Pack, p[0].Category, p[0].Language))
 			} else if arg == "list" {
 				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-list", motivationsCategories))
@@ -514,7 +514,7 @@ func main() {
 		}
 
 		return c.Send(&telebot.Photo{
-			File: telebot.FromDisk(m.Path),
+			File:    telebot.FromDisk(m.Path),
 			Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-photo", m.ID, m.Category, m.Language),
 		})
 	})
