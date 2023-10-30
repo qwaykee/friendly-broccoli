@@ -22,6 +22,8 @@ FriendlyBroccolli golang
 [x] /ranks
 [x] /ranks [rank]
 [-] /help (channels, donation)
+[ ] Add tasks to config.yml
+[ ] Add images to motivation/
 
 # Structure
 Commands:
