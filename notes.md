@@ -9,7 +9,7 @@ FriendlyBroccolli golang
 [x] Add inline keyboard (/new)
 [x] Finish getRank()
 [x] Remove replace in go.mod
-[ ] Remove comment when issue fixed (i18n.SetDefaultLanguage("en-US"))
+[x] Remove comment when issue fixed (i18n.SetDefaultLanguage("en-US")) // removed line
 [x] Fix cauliflower and integrate
 [ ] Remove db logger
 [ ] /start
@@ -27,6 +27,7 @@ FriendlyBroccolli golang
 [ ] Add tasks to config.yml
 [ ] Add images to motivation/
 [x] Task max 3/day
+[ ] Remove /dummy
 
 # Structure
 Commands:

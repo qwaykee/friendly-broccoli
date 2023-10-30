@@ -41,7 +41,7 @@ type Motivation struct {
 
 type User struct {
 	gorm.Model
-	ID            int64
+	ID            int64 `gorm:"primaryKey"`
 	Username      string
 }
 
@@ -56,10 +56,11 @@ type Journey struct {
 
 type Entry struct {
 	gorm.Model
-	UserID   int64
-	IsPublic bool
-	Note     int
-	Text     string `gorm:"size:4096"`
+	UserID       int64
+	IsPublic     bool
+	CreatedAtStr string
+	Note         int
+	Text         string `gorm:"size:4096"`
 }
 
 type Task struct {
