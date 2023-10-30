@@ -24,7 +24,28 @@ survived-private: "Private"
 survived-public: "Public"
 survived-saved: "*📝 %v entry created (%v/10)*\nSee it on my %v\n\n`%v`"
 
-help: "*Commands*
+err-no-message-received: "No message received before the timeout"
+err-command-canceled: "Command canceled"
+
+motivation-caption: "📷 %v (%v/%v)"
+motivation-list: "*Categories:*\n{{ range $category, $number := . }}{{ $category }}: {{ $number }} pictures\n{{ end }}"
+motivation-error: "Sorry, I didn't find what you're looking for, did you mean `/motivation %v`?"
+
+profile-text: "*👤 %v's profile (%v points)*\n\n*%v (%v points)*:\nStart: %v (%v days)\nRank: %v (%v in %v days)\n%v entries - %v tasks\n\n*All journeys (%v)*:\nAverage: %v days\nTotal: %v days\n%v entries - %v tasks"
+profile-text-no-journey: "*👤 No journey for this user*"
+profile-current-journey: "Current journey"
+profile-last-journey: "Last journey"
+profile-button: "See %v's public entries"
+
+task-too-much: "You already done 3 tasks today! Come back tomorrow 🫡" # space -> emoji
+task-cta: "*🎖️ Task: %v*\nGiven at: %v\nDone at: Not done\nClick on the button when you're done!"
+task-done: "*🎖️ Task: %v*\nGiven at: %v\nDone at: %v\nWell done soldier! You've earned %v points!"
+task-unfinished: "You already have a task to complete, finish it before starting a new one"
+task-button: "I'm done"
+
+task-10-pushups: "Do 10 pushups"
+
+help-text: "*Commands*
       \n/new • Start a new journey
       \n/check • Check-in for your current journey
       \n/motivation • Send a motivational media
@@ -46,16 +67,3 @@ help: "*Commands*
       \nBot's channel: t.me/
       \nPersonal channel: t.me/
       "
-
-err-no-message-received: "No message received before the timeout"
-err-command-canceled: "Command canceled"
-
-task-cta: "*🎖️ Task: %v*\nGiven at: %v\nDone at: Not done\nClick on the button when you're done!"
-task-done: "*🎖️ Task: %v*\nGiven at: %v\nDone at: %v\nWell done soldier! You've earned %v points!"
-task-unfinished: "You already have a task to complete, finish it before starting a new one"
-task-button: "I'm done"
-task-10-pushups: "Do 10 pushups"
-
-motivation-caption: "📷 %v (%v/%v)"
-motivation-list: "*Categories:*\n{{ range $category, $number := . }}{{ $category }}: {{ $number }} pictures\n{{ end }}"
-motivation-error: "Sorry, I didn't find what you're looking for, did you mean `/motivation %v`?"

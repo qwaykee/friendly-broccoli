@@ -24,38 +24,46 @@ survived-private: "privée"
 survived-public: "publique"
 survived-saved: "*📝 Entrée %v créée (%v/10)*\nLa retrouver dans %v\n\n`%v`"
 
-help: "*Commandes*
-      \n/new • Démarrer un nouveau voyage
-      \n/check • Pointer pour le voyage en cours
-      \n/motivation • Envoie un média motivant
-      \n/motivation list • Liste les catégories de médias
-      \n/motivation category/id • Envoie un média motivant de la catégorie/le média choisi
-      \n/ranks • Liste les différents systèmes de grades
-      \n/ranks système • Liste en entier le système de grade sélectionné
-      \n/profile • Voir son profil public
-      \n/profile @utilisateur • Voir le profil public d'une personne
-      \n/account • Voir ses informations personnelles et ses paramètres
-      \n
-      \n*Statistiques*
-      \nUtilisateurs: %v
-      \nNombre de message: %v
-      \nEn ligne depuis le %v
-      \n
-      \n*À propos*
-      \nFait par @qwaykee
-      \nCanal du bot: t.me/
-      \nCanal personnel: t.me/
-      "
-
 err-no-message-received: "Pas de message reçu dans le temps imparti"
 err-command-canceled: "Commande annulée"
-
-task-cta: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: Non fini\nClique sur le bouton quand tu as fini!"
-task-done: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: %v\nBien joué soldat! Tu as gagné %v points!"
-task-unfinished: "Tu as déjà une tâche à faire, finis-la avant d'en commencer une autre"
-task-button: "J'ai fini"
-task-10-pushups: "Fait 10 pompes"
 
 motivation-caption: "📷 %v (%v/%v)"
 motivation-list: "*Categories:*\n{{ range $category, $number := . }}{{ $category }}: {{ $number }} images\n{{ end }}"
 motivation-error: "Désolé, je n'ai pas trouvé ce que tu recherches, voulais-tu dire `/motivation %v`?"
+
+profile-text: "*👤 Profil de %v (%v points)*\n\n*%v (%v points)*:\nDébut: %v (%v jours)\nGrade: %v (%v dans %v jours)\n%v pointages - %v tâches\n\n*Tout les voyages (%v)*:\nMoyenne: %v jours\nTotal: %v jours\n%v pointages - %v tâches"
+profile-text-no-journey: "*👤 Aucun voyage pour cet utilisateur*"
+profile-current-journey: "Voyage actuel"
+profile-last-journey: "Dernier voyage"
+profile-button: "Voir les pointages publics de %v"
+
+task-too-much: "Tu as déjà fini 3 tâches aujourd'hui! Reviens demain 🫡" # space -> emoji
+task-cta: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: Non fini\nClique sur le bouton quand tu as fini!"
+task-done: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: %v\nBien joué soldat! Tu as gagné %v points!"
+task-unfinished: "Tu as déjà une tâche à faire, finis-la avant d'en commencer une autre"
+task-button: "J'ai fini"
+
+task-10-pushups: "Fait 10 pompes"
+
+help-text: "*Commands*
+      \n/new • Start a new journey
+      \n/check • Check-in for your current journey
+      \n/motivation • Send a motivational media
+      \n/motivation list • List the categories of media
+      \n/motivation category/id • Send a motivational media from the category/the selected media
+      \n/ranks • List the ranks systems
+      \n/ranks system • List the full selected rank system
+      \n/profile • See your public profile
+      \n/profile @user • See someone else's profile
+      \n/account • See your private informations and settings
+      \n
+      \n*Statistics*
+      \nUsers: %v
+      \nMessage count: %v
+      \nUp since %v
+      \n
+      \n*About*
+      \nMade by @qwaykee
+      \nBot's channel: t.me/
+      \nPersonal channel: t.me/
+      "

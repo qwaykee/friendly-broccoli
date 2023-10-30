@@ -22,20 +22,23 @@ FriendlyBroccolli golang
 [x] /ranks
 [x] /ranks [rank]
 [-] /help (channels, donation)
+[x] Fix profile and /check relapsed update db doesn't work
+[ ] Profile public entries
 [ ] Add tasks to config.yml
 [ ] Add images to motivation/
+[x] Task max 3/day
 
 # Structure
 Commands:
 - /start -> guided visit
 - /new -> new journey (days, save to db, rank system, save to db)
 - /check -> new entry (max 3/day, relapse?, note, text, public?, save to db)
-- /task -> random task to complete (completed? -> save to db)
+- /task -> random task to complete (max 3/day, completed? -> save to db)
 - /motivation -> random image
 - /motivation list -> list categories
 - /motivation [id] -> image id
 - /motivation [category] -> random image from category
-- /profile [@user=me] -> total score, current journey (start, rank, next rank, n. entries, n. tasks, score), all journeys (average length, total days, total entries), public entries (callback query button)
+- /profile [@user=me] -> total score, current journey (start, days, rank, next rank, n. entries, n. tasks, score), all journeys (average length, total days, total entries), public entries (callback query button)
 - /account -> score, rank, next rank, all entries, activity (new, check (id, note, relapse?), task), activity/journey, download
 - /ranks -> ranks system overview
 - /ranks [rank] -> full rank list

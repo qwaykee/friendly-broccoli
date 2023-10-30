@@ -39,6 +39,12 @@ type Motivation struct {
 	Path      string
 }
 
+type User struct {
+	gorm.Model
+	ID            int64
+	Username      string
+}
+
 type Journey struct {
 	gorm.Model
 	UserID     int64

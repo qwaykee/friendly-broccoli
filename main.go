@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"errors"
 )
 
 var (
@@ -216,7 +217,7 @@ func main() {
 	// initialize check-in buttons
 	var relapsed, survived telebot.Btn
 
-	// handle message count
+	// handle message count and save user
 	b.Use(func(next telebot.HandlerFunc) telebot.HandlerFunc {
 		return func(c telebot.Context) error {
 			messageCount += 1
@@ -225,11 +226,16 @@ func main() {
 	})
 
 	b.Handle("/start", func(c telebot.Context) error {
+		db.Save(&User{
+			ID: c.Sender().ID,
+			Username: c.Sender().Username,
+		})
+
 		return c.Send(localizer.Tr(c.Sender().LanguageCode, "start-hello"))
 	})
 
 	b.Handle("/new", func(c telebot.Context) error {
-		if r := db.Find(&Journey{UserID: c.Sender().ID}, "end IS NULL"); r.RowsAffected > 0 {
+		if r := db.Where("user_id = ? AND end = ?", c.Sender().ID, time.Time{}).First(&Journey{}); !errors.Is(r.Error, gorm.ErrRecordNotFound) {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "new-already-running-journey"))
 		}
 
@@ -259,10 +265,7 @@ func main() {
 	})
 
 	b.Handle("/check", func(c telebot.Context) error {
-		if r := db.Last(&Journey{
-			UserID: c.Sender().ID,
-			End:    time.Time{},
-		}); r.Error == gorm.ErrRecordNotFound {
+		if r := db.Where("user_id = ? AND end = ?", c.Sender().ID, time.Time{}).Last(&Journey{}); errors.Is(r.Error, gorm.ErrRecordNotFound) {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-no-journey"))
 		}
 
@@ -289,8 +292,7 @@ func main() {
 				return nil
 			}
 
-			db.Save(&Journey{
-				UserID: c.Sender().ID,
+			db.Where("user_id = ?", c.Sender().ID).Updates(&Journey{
 				End:    time.Now(),
 				Text:   answer.Text,
 			})
@@ -384,7 +386,17 @@ func main() {
 	b.Handle("/task", func(c telebot.Context) error {
 		var task Task
 
-		if r := db.Where("user_id = ? AND is_done = 0", c.Sender().ID).Find(&task); r.RowsAffected > 0 {
+		now := time.Now()
+		midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+		if r := db.Find(&Task{}, "user_id = ? AND updated_at BETWEEN ? AND ?", c.Sender().ID, now, midnight); r.RowsAffected >= 3 {
+			return c.Send(localizer.Tr(c.Sender().LanguageCode, "task-too-much"))
+		}
+
+		if r := db.Find(&task, Task{
+			UserID: c.Sender().ID,
+			IsDone: false,
+		}); r.RowsAffected > 0 {
 			chat, err := b.ChatByID(task.ChatID)
 			if err != nil {
 				log.Println(err)
@@ -415,7 +427,10 @@ func main() {
 			b.Handle(&button, func(c telebot.Context) error {
 				var task Task
 
-				if r := db.Where("user_id = ? AND is_done = 0", c.Sender().ID).Find(&task); r.RowsAffected > 0 {
+				if r := db.Last(&task, Task{
+					UserID: c.Sender().ID,
+					IsDone: false,
+				}); r.RowsAffected > 0 {
 					task.IsDone = true
 
 					db.Save(&task)
@@ -519,6 +534,121 @@ func main() {
 		})
 	})
 
+	b.Handle("/profile", func(c telebot.Context) error {
+		var user User
+
+		if len(c.Args()) > 0 {
+			if r := db.Last(&user, "name = ?", c.Args()[0]); errors.Is(r.Error, gorm.ErrRecordNotFound) {
+				// user doesn't exist
+				return c.Send(localizer.Tr(c.Sender().LanguageCode, "profile-text-no-journey"))
+			}
+		} else {
+			user.ID, user.Username = c.Sender().ID, c.Sender().Username
+		}
+
+		var j Journey
+		if r := db.First(&j, "user_id = ?", user.ID); errors.Is(r.Error, gorm.ErrRecordNotFound) {
+			// user doesn't have journeys
+			return c.Send(localizer.Tr(c.Sender().LanguageCode, "profile-text-no-journey"))
+		}
+
+		var translationKey string
+		if j.End.IsZero() {
+			translationKey = "profile-current-journey"
+		} else {
+			translationKey = "profile-last-journey"
+		}
+
+		journeyIsCurrent := localizer.Tr(c.Sender().LanguageCode, translationKey)
+
+		var a []Journey
+		db.Find(&a, &Journey{
+			UserID: user.ID,
+		})
+
+		var totalDays int
+		for _, j := range a {
+			totalDays += int(time.Now().Sub(j.Start).Hours() / 24)
+		}
+
+		averageDays := totalDays
+
+		if totalDays > 0 {
+			// to avoid division by zero
+			averageDays = totalDays / len(a)
+		}
+
+		var tasks []Task
+		var entries []Entry
+
+		var totalEntriesCount, totalTasksCount int64
+		
+		totalEntriesCount = db.Where("user_id = ?", user.ID).Select("created_at").Find(&entries).RowsAffected
+		totalTasksCount = db.Where("user_id = ?", user.ID).Select("created_at").Find(&tasks).RowsAffected
+
+		var entriesCount, tasksCount int
+		
+		for _, entry := range entries {
+			if entry.CreatedAt.After(j.Start) {
+				entriesCount += 1
+			}
+		}
+		
+		for _, task := range tasks {
+			if task.CreatedAt.After(j.Start) {
+				tasksCount += 1
+			}
+		}
+
+		_, currentRank := getRank(j.Start, j.RankSystem, 0)
+		daysLeft, nextRank := getRank(j.Start, j.RankSystem, 1)
+
+		days := int(time.Now().Sub(j.Start).Hours() / 24)
+		totalScore, currentScore := calculateScore(user.ID, true), calculateScore(user.ID, false)
+
+		text := localizer.Tr(c.Sender().LanguageCode,
+			"profile-text",
+			user.Username, // current/last journey
+			totalScore,
+			journeyIsCurrent,
+			currentScore,
+			j.Start.Format("02 Jan 06"),
+			days,
+			currentRank,
+			nextRank,
+			daysLeft,
+			entriesCount,
+			tasksCount,
+			len(a), // all journeys
+			averageDays,
+			totalDays,
+			totalEntriesCount,
+			totalTasksCount,
+		)
+
+		markup := b.NewMarkup()
+
+		button := markup.Data(localizer.Tr(c.Sender().LanguageCode, "profile-button", user.Username), randomString(16), strconv.FormatInt(user.ID, 10), "1")
+
+		b.Handle(&button, func(c telebot.Context) error {
+			// userID := strings.TrimSpace(c.Callback().Data)
+// 
+			// var entries []Entry
+			// db.Find(&entries, Entry{
+			// 	UserID: userID,
+			// 	IsPublic: true,
+			// })
+// 
+			// var text string
+			log.Println(c.Callback().Data)
+			return nil
+		})
+
+		markup.Inline(markup.Row(button))
+
+		return c.Send(text, markup)
+	})
+
 	b.Handle("/ranks", func(c telebot.Context) error {
 		var text string
 
@@ -554,7 +684,7 @@ func main() {
 	b.Handle("/help", func(c telebot.Context) error {
 		users := db.Select("DISTINCT(user_id)").Find(&Journey{}).RowsAffected
 
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "help", users, messageCount, start.Format("02 Jan 06")))
+		return c.Send(localizer.Tr(c.Sender().LanguageCode, "help-text", users, messageCount, start.Format("02 Jan 06 15:04")))
 	})
 
 	log.Println("starting bot")
@@ -599,4 +729,40 @@ func randomString(n int) string {
 		s[i] = letters[rand.Intn(len(letters))]
 	}
 	return string(s)
+}
+
+func calculateScore(userID int64, allJourneys bool) int {
+	score := 0
+
+	var tasks []Task
+
+	if allJourneys {
+		var journeys []Journey
+		db.Select("start", "end").Where("user_id = ?", userID).Find(&journeys)
+
+		for _, journey := range journeys {
+			end := journey.End
+			if end.IsZero() {
+				end = time.Now()
+			}
+			score += int(end.Sub(journey.Start).Hours() / 24) * 2
+		}
+
+		db.Select("task_id").Where("user_id = ?", userID).Find(&tasks)
+	} else {
+		var journey Journey
+		db.Select("start").Where("user_id = ? AND end = ?", userID, time.Time{}).Last(&journey)
+
+		if !journey.Start.IsZero() {
+			score += int(time.Now().Sub(journey.Start).Hours() / 24) * 2
+			db.Select("task_id").Where("? < updated_at AND user_id = ?", journey.Start, userID).Find(&tasks)
+		}
+
+	}
+	
+	for _, task := range tasks {
+		score += config.Tasks[task.TaskID].Points
+	}
+
+	return score
 }
