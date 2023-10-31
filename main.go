@@ -204,14 +204,11 @@ func main() {
 
 	ranksMarkup.Inline(ranksMarkup.Split(2, ranksbuttons)...)
 
-	// handle message count and save user
+	// handle message count
 	b.Use(func(next telebot.HandlerFunc) telebot.HandlerFunc {
 		return func(c telebot.Context) error {
-			start := time.Now()
 			messageCount += 1
-			err := next(c)
-			log.Println(time.Now().Sub(start))
-			return err
+			return next(c)
 		}
 	})
 
@@ -265,7 +262,9 @@ func main() {
 
 		now, midnight := today()
 
-		if r := db.Find(&Entry{}).Where("created_at BETWEEN ? AND ?", midnight, now); r.RowsAffected >= 3 {
+		var count int64
+		db.Model(&Entry{}).Where("created_at BETWEEN ? AND ?", midnight, now).Count(&count)
+		if int(count) >= 3 {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-already-checked-in"))
 		}
 
@@ -294,9 +293,9 @@ func main() {
 		})
 
 		b.Handle(&survived, func(c telebot.Context) error {
-			noteButtons := sliceMarkup(5, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"})
+			markup := sliceMarkup(5, []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"})
 
-			return c.Edit(localizer.Tr(c.Sender().LanguageCode, "survived-ask-note"), noteButtons)
+			return c.Edit(localizer.Tr(c.Sender().LanguageCode, "survived-ask-note"), markup)
 		})
 
 		markup.Inline(markup.Row(relapsed, survived))
@@ -331,28 +330,6 @@ func main() {
 			public := markup.Data(localizer.Tr(c.Sender().LanguageCode, "survived-button-public"), "public")
 			private := markup.Data(localizer.Tr(c.Sender().LanguageCode, "survived-button-private"), "private")
 
-			handlePrivacy := func(c telebot.Context, isPublic bool) error {
-				var privacy, command string
-
-				if isPublic {
-					privacy = localizer.Tr(c.Sender().LanguageCode, "survived-public")
-					command = "/profile"
-				} else {
-					privacy = localizer.Tr(c.Sender().LanguageCode, "survived-private")
-					command = "/account"
-				}
-
-				entry := &Entry{
-					UserID: c.Sender().ID,
-					Note:   number,
-					Text:   answer.Text,
-				}
-
-				db.Model(&entry).Where(&entry).Updates(Entry{IsPublic: isPublic})
-
-				return c.Edit(localizer.Tr(c.Sender().LanguageCode, "survived-saved", privacy, entry.Note, command, entry.Text))
-			}
-
 			b.Handle(&public, func(c telebot.Context) error {
 				return handlePrivacy(c, true)
 			})
@@ -373,7 +350,9 @@ func main() {
 	b.Handle("/task", func(c telebot.Context) error {
 		now, midnight := today()
 
-		if r := db.Find(&Task{}, "user_id = ? AND updated_at BETWEEN ? AND ?", c.Sender().ID, now, midnight); r.RowsAffected >= 3 {
+		var count int64
+		db.Model(&Task{}).Where("user_id = ? AND updated_at BETWEEN ? AND ?", c.Sender().ID, now, midnight).Count(&count)
+		if int(count) >= 3 {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "task-too-much"))
 		}
 
@@ -707,6 +686,28 @@ func profilePublicEntries(c telebot.Context) error {
 	})
 
 	return c.Edit(text, markup)
+}
+
+func handlePrivacy(c telebot.Context, isPublic bool) error {
+	var privacy, command string
+
+	if isPublic {
+		privacy = localizer.Tr(c.Sender().LanguageCode, "survived-public")
+		command = "/profile"
+	} else {
+		privacy = localizer.Tr(c.Sender().LanguageCode, "survived-private")
+		command = "/account"
+	}
+
+	entry := &Entry{
+		UserID: c.Sender().ID,
+		Note:   number,
+		Text:   answer.Text,
+	}
+
+	db.Model(&entry).Where(&entry).Updates(Entry{IsPublic: isPublic})
+
+	return c.Edit(localizer.Tr(c.Sender().LanguageCode, "survived-saved", privacy, entry.Note, command, entry.Text))
 }
 
 func sendPack(c telebot.Context, m Motivation) error {

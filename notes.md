@@ -5,30 +5,30 @@ FriendlyBroccolli golang
 [x] Middleware message count
 [x] Bot.SetCommands()
 [x] config.yml
-[ ] README.md
 [x] Add inline keyboard (/new)
 [x] Finish getRank()
 [x] Remove replace in go.mod
 [x] Remove comment when issue fixed (i18n.SetDefaultLanguage("en-US")) // removed line
 [x] Fix cauliflower and integrate
-[ ] Remove db logger
 [ ] /start
 [x] /new
 [x] /check
 [x] /task
 [x] /motivation
-[ ] /profile [@user=me]
+[x] /profile [@user=me]
 [ ] /account
 [x] /ranks
 [x] /ranks [rank]
 [-] /help (channels, donation)
 [x] Fix profile and /check relapsed update db doesn't work
 [x] Fix profile public entries markup
+[x] Task max 3/day
+[x] Change /motivations structs to db
+[ ] README.md
+[ ] Remove db logger
 [ ] Add tasks to config.yml
 [ ] Add images to motivation/
-[x] Task max 3/day
 [ ] Remove /dummy
-[ ] Change /motivations structs to db
 [ ] Add resources to /help (easypeasymethod)
 
 # Structure
