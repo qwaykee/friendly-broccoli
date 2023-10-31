@@ -28,6 +28,8 @@ FriendlyBroccolli golang
 [ ] Add images to motivation/
 [x] Task max 3/day
 [ ] Remove /dummy
+[ ] Change /motivations structs to db
+[ ] Add resources to /help (easypeasymethod)
 
 # Structure
 Commands:

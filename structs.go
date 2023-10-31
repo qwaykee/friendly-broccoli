@@ -30,6 +30,7 @@ type TaskData struct {
 }
 
 type Motivation struct {
+	UUID      string `gorm:"primaryKey"`
 	Pack      string
 	PackPlace int
 	ID        string

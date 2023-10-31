@@ -35,7 +35,6 @@ var (
 	chatToChannel         = make(map[int64](*chan string))
 	rankButtons           = []telebot.Btn{}
 	motivationsCategories = make(map[string]int)
-	motivationsPacks      = make(map[string][]Motivation)
 	start                 time.Time
 
 	//go:embed locale.*.yml
@@ -49,62 +48,6 @@ func init() {
 	// load config
 	if err := yaml.Unmarshal(configFile, &config); err != nil {
 		log.Fatal(err)
-	}
-
-	// load motivation images
-	config.Motivations = make(map[string]Motivation)
-	if err := filepath.Walk(config.MotivationPath, func(path string, file fs.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if !file.IsDir() {
-			s := strings.Split(file.Name(), ".")
-			var pack, place, id, category, language, extension string
-			var m Motivation
-			if len(s) > 4 {
-				pack, place, category, language, extension = s[0], s[1], s[2], s[3], s[4]
-				placeInt, err := strconv.Atoi(place)
-				if err != nil {
-					return err
-				}
-
-				m = Motivation{
-					Pack:      pack,
-					PackPlace: placeInt,
-					Category:  category,
-					Language:  language,
-					Extension: extension,
-					Path:      path,
-				}
-
-				motivationsPacks[pack] = append(motivationsPacks[pack], m)
-			} else {
-				id, category, language, extension = s[0], s[1], s[2], s[3]
-
-				m = Motivation{
-					ID:        id,
-					Category:  category,
-					Language:  language,
-					Extension: extension,
-					Path:      path,
-				}
-			}
-
-			motivationsCategories[category] += 1
-
-			config.Motivations[id] = m
-		}
-
-		return nil
-	}); err != nil {
-		log.Fatalf("filepath: %v", err)
-	}
-
-	for _, pack := range motivationsPacks {
-		sort.Slice(pack, func(i, j int) bool {
-			return pack[i].PackPlace < pack[j].PackPlace
-		})
 	}
 
 	// initialize i18n
@@ -124,7 +67,66 @@ func init() {
 		log.Fatalf("gorm: %v", err)
 	}
 
-	db.AutoMigrate(&User{}, &Journey{}, &Entry{}, &Task{})
+	db.AutoMigrate(&User{}, &Journey{}, &Entry{}, &Task{}, &Motivation{})
+
+	// load motivation images
+	var motivations []Motivation
+	var matches []string
+
+	if err := filepath.Walk(config.MotivationPath, func(path string, file fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if file.IsDir() {
+			return nil
+		}
+
+		s := strings.Split(file.Name(), ".")
+
+		if len(s) > 4 {
+			matches = append(matches, s[0], s[2])
+			motivationsCategories[s[2]] += 1
+
+			place, err := strconv.Atoi(s[1])
+			if err != nil {
+				return err
+			}
+
+			motivations = append(motivations, Motivation{
+				UUID:      randomString(16),
+				Pack:      s[0],
+				PackPlace: place,
+				Category:  s[2],
+				Language:  s[3],
+				Extension: s[4],
+				Path:      path,
+			})
+
+			return nil
+		}
+
+		matches = append(matches, s[0], s[1])
+		motivationsCategories[s[1]] += 1
+
+		motivations = append(motivations, Motivation{
+			UUID:      randomString(16),
+			ID:        s[0],
+			Category:  s[1],
+			Language:  s[2],
+			Extension: s[3],
+			Path:      path,
+		})
+
+		return nil
+	}); err != nil {
+		log.Fatalf("filepath: %v", err)
+	}
+
+	db.Create(&motivations)
+
+	// initialize closest match
+	cm = closestmatch.New(removeDuplicate(matches), []int{2})
 
 	// create bot and set commands
 	b, err = telebot.NewBot(telebot.Settings{
@@ -165,11 +167,6 @@ func init() {
 		log.Fatalf("cauliflower: %v", err)
 	}
 
-	// initialize closest match
-	matches := append(maps.Keys(config.Motivations), maps.Keys(motivationsCategories)...)
-	matches = append(matches, maps.Keys(motivationsPacks)...)
-	cm = closestmatch.New(matches, []int{2})
-
 	start = time.Now()
 }
 
@@ -188,7 +185,7 @@ func main() {
 				End:    time.Time{},
 			}
 
-			db.Model(&journey).Updates(map[string]interface{}{"rank_system": c.Callback().Data})
+			db.Model(&journey).Where(&journey).Updates(map[string]interface{}{"rank_system": c.Callback().Data})
 
 			_, rank := getRank(journey.Start, journey.RankSystem, 0)
 
@@ -210,8 +207,11 @@ func main() {
 	// handle message count and save user
 	b.Use(func(next telebot.HandlerFunc) telebot.HandlerFunc {
 		return func(c telebot.Context) error {
+			start := time.Now()
 			messageCount += 1
-			return next(c)
+			err := next(c)
+			log.Println(time.Now().Sub(start))
+			return err
 		}
 	})
 
@@ -225,7 +225,9 @@ func main() {
 	})
 
 	b.Handle("/new", func(c telebot.Context) error {
-		if r := db.Where("user_id = ? AND end = ?", c.Sender().ID, time.Time{}).First(&Journey{}); !errors.Is(r.Error, gorm.ErrRecordNotFound) {
+		var found bool
+		db.Raw("SELECT EXISTS(SELECT 1 FROM journeys WHERE user_id = ? AND end = ?) AS found", c.Sender().ID, time.Time{}).Scan(&found)
+		if found {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "new-already-running-journey"))
 		}
 
@@ -255,7 +257,9 @@ func main() {
 	})
 
 	b.Handle("/check", func(c telebot.Context) error {
-		if r := db.Where("user_id = ? AND end = ?", c.Sender().ID, time.Time{}).Last(&Journey{}); errors.Is(r.Error, gorm.ErrRecordNotFound) {
+		var found bool
+		db.Raw("SELECT EXISTS(SELECT 1 FROM journeys WHERE user_id = ? AND end = ?) AS found", c.Sender().ID, time.Time{}).Scan(&found)
+		if !found {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-no-journey"))
 		}
 
@@ -367,13 +371,13 @@ func main() {
 	})
 
 	b.Handle("/task", func(c telebot.Context) error {
-		var task Task
-
 		now, midnight := today()
 
 		if r := db.Find(&Task{}, "user_id = ? AND updated_at BETWEEN ? AND ?", c.Sender().ID, now, midnight); r.RowsAffected >= 3 {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "task-too-much"))
 		}
+
+		var task Task
 
 		if r := db.Model(&task).First(Task{
 			UserID: c.Sender().ID,
@@ -412,7 +416,7 @@ func main() {
 					UserID: c.Sender().ID,
 					IsDone: false,
 				}); r.RowsAffected > 0 {
-					db.Model(&task).Updates(Task{IsDone: true})
+					db.Model(&task).Where(&task).Updates(Task{IsDone: true})
 
 					taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[task.TaskID].Task)
 					taskPoints := config.Tasks[task.TaskID].Points
@@ -444,70 +448,36 @@ func main() {
 	})
 
 	b.Handle("/motivation", func(c telebot.Context) error {
-		motivations := make(map[string]Motivation)
+		if len(c.Args()) == 0 {
+			var m Motivation
+			db.Order("RANDOM()").Take(&m)
 
-		if len(c.Args()) > 0 {
-			arg := c.Args()[0]
-
-			if arg == "list" {
-				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-list", motivationsCategories))
+			if m.Pack != "" {
+				return sendPack(c, m)
 			}
 
-			c.Notify(telebot.UploadingPhoto)
-
-			if _, ok := motivationsCategories[arg]; ok {
-				for _, m := range config.Motivations {
-					if m.Category == arg {
-						motivations[m.ID] = m
-					}
-				}
-			} else if m, ok := config.Motivations[arg]; ok {
-				return c.Send(&telebot.Photo{
-					File:    telebot.FromDisk(m.Path),
-					Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
-				})
-			} else if p, ok := motivationsPacks[arg]; ok {
-				var album telebot.Album
-
-				for _, image := range p {
-					album = append(album, &telebot.Photo{File: telebot.FromDisk(image.Path)})
-					if len(album) == 10 {
-						c.SendAlbum(album)
-						album = telebot.Album{}
-					}
-				}
-
-				if len(album) > 0 {
-					c.SendAlbum(album)
-				}
-
-				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-caption", p[0].Pack, p[0].Category, p[0].Language))
-			} else {
-				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-error", cm.Closest(arg)))
-			}
-		} else {
-			motivations = config.Motivations
+			return c.Send(&telebot.Photo{
+				File:    telebot.FromDisk(m.Path),
+				Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
+			})
 		}
 
-		motivationsKeys := maps.Keys(motivations)
-		m := motivations[motivationsKeys[rand.Intn(len(motivations))]]
+		arg := c.Args()[0]
+
+		if arg == "list" {
+			return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-list", motivationsCategories))
+		}
+
+		c.Notify(telebot.UploadingPhoto)
+
+		var m Motivation
+
+		if r := db.Where("pack = ? OR id = ? OR category = ?", arg, arg, arg).Order("RANDOM()").Take(&m); r.RowsAffected == 0 {
+			return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-error", cm.Closest(arg)))
+		}
 
 		if m.Pack != "" {
-			var album telebot.Album
-
-			for _, image := range motivationsPacks[m.Pack] {
-				album = append(album, &telebot.Photo{File: telebot.FromDisk(image.Path)})
-				if len(album) == 10 {
-					c.SendAlbum(album)
-					album = telebot.Album{}
-				}
-			}
-
-			if len(album) > 0 {
-				c.SendAlbum(album)
-			}
-
-			return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.Pack, m.Category, m.Language))
+			return sendPack(c, m)
 		}
 
 		return c.Send(&telebot.Photo{
@@ -566,7 +536,8 @@ func main() {
 	})
 
 	b.Handle("/help", func(c telebot.Context) error {
-		users := db.Select("DISTINCT(user_id)").Find(&Journey{}).RowsAffected
+		var users int64
+		db.Model(&Journey{}).Distinct("user_id").Count(&users)
 
 		return c.Send(localizer.Tr(c.Sender().LanguageCode, "help-text", users, messageCount, start.Format("02 Jan 06 15:04")))
 	})
@@ -615,7 +586,7 @@ func profile(c telebot.Context, user User) error {
 	journeyIsCurrent := localizer.Tr(c.Sender().LanguageCode, translationKey)
 
 	var a []Journey
-	db.Find(&a, &Journey{
+	db.Select("start").Find(&a, &Journey{
 		UserID: user.ID,
 	})
 
@@ -626,32 +597,16 @@ func profile(c telebot.Context, user User) error {
 
 	averageDays := totalDays
 
-	if totalDays > 0 {
-		// to avoid division by zero
+	if totalDays > 0 && len(a) > 0 {
 		averageDays = totalDays / len(a)
 	}
 
-	var tasks []Task
-	var entries []Entry
-
-	var totalEntriesCount, totalTasksCount int64
+	var entriesCount, tasksCount, totalEntriesCount, totalTasksCount int64
 	
-	totalEntriesCount = db.Where("user_id = ?", user.ID).Select("created_at").Find(&entries).RowsAffected
-	totalTasksCount = db.Where("user_id = ?", user.ID).Select("created_at").Find(&tasks).RowsAffected
-
-	var entriesCount, tasksCount int
-	
-	for _, entry := range entries {
-		if entry.CreatedAt.After(j.Start) {
-			entriesCount += 1
-		}
-	}
-	
-	for _, task := range tasks {
-		if task.CreatedAt.After(j.Start) {
-			tasksCount += 1
-		}
-	}
+	db.Model(&Entry{}).Where("user_id = ? AND created_at > ?", user.ID, j.Start).Count(&entriesCount)
+	db.Model(&Task{}).Where("user_id = ? AND created_at > ?", user.ID, j.Start).Count(&tasksCount)
+	db.Model(&Entry{}).Where("user_id = ?", user.ID).Count(&totalEntriesCount)
+	db.Model(&Task{}).Where("user_id = ?", user.ID).Count(&totalTasksCount)
 
 	_, currentRank := getRank(j.Start, j.RankSystem, 0)
 	daysLeft, nextRank := getRank(j.Start, j.RankSystem, 1)
@@ -754,6 +709,31 @@ func profilePublicEntries(c telebot.Context) error {
 	return c.Edit(text, markup)
 }
 
+func sendPack(c telebot.Context, m Motivation) error {
+	var p []Motivation
+	db.Where("pack = ?", m.Pack).Find(&p)
+
+	sort.SliceStable(p, func(i, j int) bool {
+		return p[i].PackPlace < p[j].PackPlace
+	})
+
+	var album telebot.Album
+
+	for _, image := range p {
+		album = append(album, &telebot.Photo{File: telebot.FromDisk(image.Path)})
+		if len(album) == 10 {
+			c.SendAlbum(album)
+			album = telebot.Album{}
+		}
+	}
+
+	if len(album) > 0 {
+		c.SendAlbum(album)
+	}
+
+	return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.Pack, m.Category, m.Language))
+}
+
 func getRank(start time.Time, rank string, offset int) (int, string) {
 	days := int(time.Now().Sub(start).Hours() / 24)
 	levels := config.Ranks[strings.ToLower(rank)].Levels
@@ -835,4 +815,16 @@ func today() (time.Time, time.Time) {
 	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
 
 	return now, midnight
+}
+
+func removeDuplicate[T string | int](sliceList []T) []T {
+    allKeys := make(map[T]bool)
+    list := []T{}
+    for _, item := range sliceList {
+        if _, value := allKeys[item]; !value {
+            allKeys[item] = true
+            list = append(list, item)
+        }
+    }
+    return list
 }
