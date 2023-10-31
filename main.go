@@ -485,62 +485,7 @@ func main() {
 		return profile(c, user)
 	})
 
-	b.Handle("/account", func(c telebot.Context) error {
-		var text string
-
-		text = "a"
-
-		markup := b.NewMarkup()
-
-		activity := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-activity"), randomString(16))
-		entries := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-entries"), randomString(16))
-		download := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-download"), randomString(16))
-
-		b.Handle(&activity, func(c telebot.Context) error {
-			return nil
-		})
-
-		b.Handle(&entries, func(c telebot.Context) error {
-			return profileEntries(c, false)
-		})
-
-		b.Handle(&download, func(c telebot.Context) error {
-			c.Notify(telebot.UploadingDocument)
-
-			var journeys []Journey
-			var entries []Entry
-			var tasks []Task
-
-			db.Find(&journeys, "user_id = ?", c.Sender().ID)
-			db.Find(&entries, "user_id = ?", c.Sender().ID)
-			db.Find(&tasks, "user_id = ?", c.Sender().ID)
-
-			data := map[string]interface{}{
-				"journeys": journeys,
-				"entries": entries,
-				"tasks": tasks,
-			}
-
-			marshaled, err := yaml.Marshal(&data)
-			if err != nil {
-				return err
-			}
-
-			document := telebot.Document{
-				File: telebot.FromReader(bytes.NewReader(marshaled)),
-				Caption: localizer.Tr(c.Sender().LanguageCode, "account-download-document"),
-				MIME: "text/yaml",
-				FileName: "data.yml",
-			}
-			
-			_, err := document.Send(b, c.Sender(), &telebot.SendOptions{})
-			return err
-		})
-
-		markup.Inline(markup.Row(activity, entries), markup.Row(download))
-
-		return c.Send(text, markup)
-	})
+	b.Handle("/account", account)
 
 	b.Handle("/ranks", func(c telebot.Context) error {
 		var text string
@@ -686,7 +631,16 @@ func profile(c telebot.Context, user User) error {
 	button := markup.Data(localizer.Tr(c.Sender().LanguageCode, "profile-button", user.Username), randomString(16), strconv.FormatInt(user.ID, 10), "1")
 
 	b.Handle(&button, func(c telebot.Context) error {
-		return profileEntries(c, true)
+		return profileEntries(c, "public", func(c telebot.Context) error {
+			id, err := strconv.ParseInt(c.Callback().Data, 10, 64)
+			if err != nil {
+				return err
+			}
+
+			var user User
+			db.FirstOrCreate(&user, User{ID: id})
+			return profile(c, user)
+		})
 	})
 
 	markup.Inline(markup.Row(button))
@@ -694,7 +648,7 @@ func profile(c telebot.Context, user User) error {
 	return c.EditOrSend(text, markup)
 }
 
-func profileEntries(c telebot.Context, isPublic bool) error {
+func profileEntries(c telebot.Context, privacy string, backHandler func(c telebot.Context) error) error {
 	data := strings.Split(c.Callback().Data, "|")
 
 	var user User
@@ -708,21 +662,31 @@ func profileEntries(c telebot.Context, isPublic bool) error {
 	}
 
 	var count int64
-	db.Model(&Entry{
-		UserID: user.ID,
-		IsPublic: isPublic,
-	}).Count(&count)
-
 	var entries []Entry
-	db.Limit(10).Offset((page - 1) * 10).Find(&entries, Entry{
-		UserID: user.ID,
-		IsPublic: isPublic,
-	})
+	var textPrivacy string
+
+	switch privacy {
+	case "all":
+		db.Model(&Entry{UserID: user.ID}).Count(&count)
+		db.Limit(10).Offset((page - 1) * 10).Find(&entries, Entry{UserID: user.ID})
+		textPrivacy = localizer.Tr(c.Sender().LanguageCode, "profile-entries-all")
+	case "public":
+		db.Model(&Entry{UserID: user.ID, IsPublic: true}).Count(&count)
+		db.Limit(10).Offset((page - 1) * 10).Find(&entries, Entry{UserID: user.ID, IsPublic: true})
+		textPrivacy = localizer.Tr(c.Sender().LanguageCode, "profile-entries-public")
+	case "private":
+		db.Model(&Entry{UserID: user.ID, IsPublic: false}).Count(&count)
+		db.Limit(10).Offset((page - 1) * 10).Find(&entries, Entry{UserID: user.ID, IsPublic: false})
+		textPrivacy = localizer.Tr(c.Sender().LanguageCode, "profile-entries-private")
+	default:
+		return errors.New("error with profileEntries privacy")
+	}
 
 	text := localizer.Tr(c.Sender().LanguageCode, "profile-entries", map[string]interface{}{
 		"User": user.Username,
 		"Page": page,
 		"MaxPage": count / 10 + 1,
+		"Privacy": textPrivacy,
 		"Entries": entries,
 	})
 
@@ -743,25 +707,94 @@ func profileEntries(c telebot.Context, isPublic bool) error {
 	markup.Inline(markup.Row(previous, next, back))
 
 	b.Handle(&next, func(c telebot.Context) error {
-		return profileEntries(c, true)
+		return profileEntries(c, "public", func(c telebot.Context) error {
+			id, err := strconv.ParseInt(c.Callback().Data, 10, 64)
+			if err != nil {
+				return err
+			}
+
+			var user User
+			db.FirstOrCreate(&user, User{ID: id})
+			return profile(c, user)
+		})
 	})
 
 	b.Handle(&previous, func(c telebot.Context) error {
-		return profileEntries(c, true)
+		return profileEntries(c, "public", func(c telebot.Context) error {
+			id, err := strconv.ParseInt(c.Callback().Data, 10, 64)
+			if err != nil {
+				return err
+			}
+
+			var user User
+			db.FirstOrCreate(&user, User{ID: id})
+			return profile(c, user)
+		})
 	})
 
-	b.Handle(&back, func(c telebot.Context) error {
-		id, err := strconv.ParseInt(c.Callback().Data, 10, 64)
+	b.Handle(&back, backHandler)
+
+	return c.Edit(text, markup)
+}
+
+func account(c telebot.Context) error {
+	var text string
+
+	text = "a"
+
+	markup := b.NewMarkup()
+
+	activity := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-activity"), randomString(16))
+	entries := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-entries"), randomString(16), strconv.FormatInt(c.Sender().ID, 10), "1")
+	download := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-download"), randomString(16))
+
+	b.Handle(&activity, func(c telebot.Context) error {
+		return nil
+	})
+
+	b.Handle(&entries, func(c telebot.Context) error {
+		return profileEntries(c, "all", account)
+	})
+
+	b.Handle(&download, func(c telebot.Context) error {
+		c.Notify(telebot.UploadingDocument)
+
+		var journeys []Journey
+		var entries []Entry
+		var tasks []Task
+
+		db.Find(&journeys, "user_id = ?", c.Sender().ID)
+		db.Find(&entries, "user_id = ?", c.Sender().ID)
+		db.Find(&tasks, "user_id = ?", c.Sender().ID)
+
+		data := map[string]interface{}{
+			"journeys": journeys,
+			"entries": entries,
+			"tasks": tasks,
+		}
+
+		marshaled, err := yaml.Marshal(&data)
 		if err != nil {
 			return err
 		}
 
-		var user User
-		db.FirstOrCreate(&user, User{ID: id})
-		return profile(c, user)
+		document := telebot.Document{
+			File: telebot.FromReader(bytes.NewReader(marshaled)),
+			Caption: localizer.Tr(c.Sender().LanguageCode, "account-download-document"),
+			MIME: "text/yaml",
+			FileName: "data.yml",
+		}
+		
+		_, err = document.Send(b, c.Sender(), &telebot.SendOptions{})
+
+		c.Respond()
+
+		return err
 	})
 
-	return c.Edit(text, markup)
+	markup.Inline(markup.Row(activity, entries), markup.Row(download))
+
+	return c.EditOrSend(text, markup)
 }
 
 func handlePrivacy(c telebot.Context, isPublic bool, number int, answer string) error {

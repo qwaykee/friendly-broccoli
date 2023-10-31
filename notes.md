@@ -30,6 +30,8 @@ FriendlyBroccolli golang
 [ ] Add images to motivation/
 [ ] Remove /dummy
 [ ] Add resources to /help (easypeasymethod)
+[ ] Finir /account entries, activity
+[ ] /account download edit message instead of sending new one
 
 # Structure
 Commands:

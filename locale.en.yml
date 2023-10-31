@@ -40,10 +40,17 @@ profile-button: "See %v's public entries"
 profile-next: "Next"
 profile-previous: "Previous"
 profile-back: "Back"
-profile-entries: "*{{ .User }}'s public entries (page {{ .Page }}/{{ .MaxPage }})*\n{{ range $e := .Entries }}\n{{ $e.CreatedAtStr }} {{ $e.Note }}/10 ` {{ $e.Text }} `{{ end }}"
+profile-entries: "*{{ .User }}'s {{ .Privacy }} entries (page {{ .Page }}/{{ .MaxPage }})*\n{{ range $e := .Entries }}\n{{ $e.CreatedAtStr }} {{ $e.Note }}/10 ` {{ $e.Text }} `{{ end }}"
+profile-entries-all: "all"
+profile-entries-public: "public"
+profile-entries-private: "private"
 
 account-text: "*My account*
-
+Score: %v
+Rank: %v (%v in %v days)
+Total days: %v
+Average days: %v
+%v entries - %v tasks
 "
 account-activity: "My activity"
 account-entries: "My entries"
