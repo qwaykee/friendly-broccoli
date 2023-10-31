@@ -358,6 +358,8 @@ github.com/qwaykee/cauliflower v0.0.0-20231028103208-b9e34bb86778 h1:TtU/DAI4yec
 github.com/qwaykee/cauliflower v0.0.0-20231028103208-b9e34bb86778/go.mod h1:LXKkphOTZDDrVOTTAcWHou6V+cdjeigWtQJjnaDUN68=
 github.com/qwaykee/cauliflower v0.0.0-20231028162742-1b66ab3b673a h1:BfsPKhphZ2U6jMZrUIrrXYQJCJ6/u/Ox0qi8mfnkmhk=
 github.com/qwaykee/cauliflower v0.0.0-20231028162742-1b66ab3b673a/go.mod h1:LXKkphOTZDDrVOTTAcWHou6V+cdjeigWtQJjnaDUN68=
+github.com/qwaykee/cauliflower v0.0.0-20231031123728-048b7f63a8c4 h1:rR6GT/B8LhZDke26MiZBjpWiuAqVgK7m3E2YAxmkS4s=
+github.com/qwaykee/cauliflower v0.0.0-20231031123728-048b7f63a8c4/go.mod h1:LXKkphOTZDDrVOTTAcWHou6V+cdjeigWtQJjnaDUN68=
 github.com/rogpeppe/fastuuid v1.2.0/go.mod h1:jVj6XXZzXRy/MSR5jhDC/2q6DgLz+nrA6LYCDYWNEvQ=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
 github.com/rogpeppe/go-internal v1.6.1 h1:/FiVV8dS/e+YqF2JvO3yXRFbBLTIuSDkuC7aBOAvL+k=

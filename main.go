@@ -270,18 +270,17 @@ func main() {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-already-checked-in"))
 		}
 
-		checkInButtons := b.NewMarkup()
+		markup := b.NewMarkup()
 
-		relapsed = checkInButtons.Data(localizer.Tr(c.Sender().LanguageCode, "check-button-relapsed"), "relapsed")
-		survived = checkInButtons.Data(localizer.Tr(c.Sender().LanguageCode, "check-button-survived"), "survived")
+		relapsed := markup.Data(localizer.Tr(c.Sender().LanguageCode, "check-button-relapsed"), "relapsed")
+		survived := markup.Data(localizer.Tr(c.Sender().LanguageCode, "check-button-survived"), "survived")
 
 		b.Handle(&relapsed, func(c telebot.Context) error {
-			msg, err := b.Edit(c.Message(), localizer.Tr(c.Sender().LanguageCode, "relapsed"))
-			if err != nil {
-				log.Println(err)
-			}
-
-			_, answer, err := i.Listen(cauliflower.Parameters{Context: c})
+			msg, answer, err := i.Listen(cauliflower.Parameters{
+				Context: c,
+				Message: localizer.Tr(c.Sender().LanguageCode, "relapsed"),
+				Edit: c.Message(),
+			})
 			if err != nil {
 				return nil
 			}
@@ -301,9 +300,9 @@ func main() {
 			return c.Edit(localizer.Tr(c.Sender().LanguageCode, "survived-ask-note"), noteButtons)
 		})
 
-		checkInButtons.Inline(checkInButtons.Split(2, []telebot.Btn{relapsed, survived})...)
+		markup.Inline(markup.Row(relapsed, survived))
 
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-ask-relapsed"), checkInButtons)
+		return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-ask-relapsed"), markup)
 	})
 
 	b.Handle(telebot.OnCallback, func(c telebot.Context) error {
@@ -311,13 +310,10 @@ func main() {
 
 		if number, err := strconv.Atoi(data); err == nil {
 			// handle note from check
-			msg, err := b.Edit(c.Message(), localizer.Tr(c.Sender().LanguageCode, "survived-ask-entry"))
-			if err != nil {
-				return err
-			}
-
-			_, answer, err := i.Listen(cauliflower.Parameters{
+			msg, answer, err := i.Listen(cauliflower.Parameters{
 				Context: c,
+				Message: localizer.Tr(c.Sender().LanguageCode, "survived-ask-entry"),
+				Edit: c.Message(),
 			})
 			if err != nil {
 				return nil
@@ -460,6 +456,8 @@ func main() {
 	})
 
 	b.Handle("/motivation", func(c telebot.Context) error {
+		motivations := make(map[string]Motivation)
+
 		if len(c.Args()) > 0 {
 			arg := c.Args()[0]
 
@@ -467,11 +465,9 @@ func main() {
 				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-list", motivationsCategories))
 			}
 
-			if err := b.Notify(c.Sender(), telebot.UploadingPhoto); err != nil {
+			if err := c.Notify(telebot.UploadingPhoto); err != nil {
 				return err
 			}
-
-			motivations := make(map[string]Motivation)
 
 			if _, ok := motivationsCategories[arg]; ok {
 				for _, m := range config.Motivations {
@@ -737,6 +733,8 @@ func profilePublicEntries(c telebot.Context) error {
 	previous := markup.Data(localizer.Tr(c.Sender().LanguageCode, "previous"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page - 1))
 	back := markup.Data(localizer.Tr(c.Sender().LanguageCode, "back"), randomString(16), strconv.FormatInt(user.ID, 10))
 
+	markup.Inline(markup.Row(next, previous, back))
+
 	b.Handle(&next, profilePublicEntries)
 	b.Handle(&previous, profilePublicEntries)
 	b.Handle(&back, func(c telebot.Context) error {
@@ -749,83 +747,5 @@ func profilePublicEntries(c telebot.Context) error {
 		}
 	})
 
-	markup.Inline(markup.Row(next, previous, back))
-
 	return c.Edit(text, markup)
-}
-
-func getRank(start time.Time, rank string, offset int) (int, string) {
-	days := int(time.Now().Sub(start).Hours() / 24)
-	levels := config.Ranks[strings.ToLower(rank)].Levels
-
-	keys := maps.Keys(levels)
-	sort.Ints(keys)
-
-	for key, value := range keys {
-		if days <= value {
-			return value, levels[keys[key+offset]]
-		}
-	}
-
-	return 0, ""
-}
-
-func sliceMarkup(split int, data []string) *telebot.ReplyMarkup {
-	var buttons []telebot.Btn
-	markup := b.NewMarkup()
-
-	for _, text := range data {
-		button := markup.Data(text, text)
-		buttons = append(buttons, button)
-	}
-
-	markup.Inline(markup.Split(split, buttons)...)
-
-	return markup
-}
-
-func randomString(n int) string {
-	var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
-
-	s := make([]rune, n)
-	for i := range s {
-		s[i] = letters[rand.Intn(len(letters))]
-	}
-	return string(s)
-}
-
-func calculateScore(userID int64, allJourneys bool) int {
-	score := 0
-
-	var tasks []Task
-
-	if allJourneys {
-		var journeys []Journey
-		db.Select("start", "end").Where("user_id = ?", userID).Find(&journeys)
-
-		for _, journey := range journeys {
-			end := journey.End
-			if end.IsZero() {
-				end = time.Now()
-			}
-			score += int(end.Sub(journey.Start).Hours() / 24) * 2
-		}
-
-		db.Select("task_id").Where("user_id = ?", userID).Find(&tasks)
-	} else {
-		var journey Journey
-		db.Select("start").Where("user_id = ? AND end = ?", userID, time.Time{}).Last(&journey)
-
-		if !journey.Start.IsZero() {
-			score += int(time.Now().Sub(journey.Start).Hours() / 24) * 2
-			db.Select("task_id").Where("? < updated_at AND user_id = ?", journey.Start, userID).Find(&tasks)
-		}
-
-	}
-	
-	for _, task := range tasks {
-		score += config.Tasks[task.TaskID].Points
-	}
-
-	return score
 }

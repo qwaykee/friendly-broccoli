@@ -6,7 +6,7 @@ require (
 	github.com/kataras/i18n v0.0.8
 	github.com/nicksnyder/go-i18n/v2 v2.2.2
 	github.com/pelletier/go-toml/v2 v2.1.0
-	github.com/qwaykee/cauliflower v0.0.0-20231028162742-1b66ab3b673a
+	github.com/qwaykee/cauliflower v0.0.0-20231031123728-048b7f63a8c4
 	github.com/schollz/closestmatch v2.1.0+incompatible
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d
 	gopkg.in/telebot.v3 v3.1.3
