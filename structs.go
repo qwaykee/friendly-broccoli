@@ -42,13 +42,13 @@ type Motivation struct {
 
 type User struct {
 	gorm.Model
-	ID            int64 `gorm:"primaryKey"`
+	ID            int64  `gorm:"primaryKey"`
 	Username      string
 }
 
 type Journey struct {
-	gorm.Model
-	UserID     int64
+	gorm.Model           `yaml:"-"`
+	UserID     int64     `yaml:"-"`
 	RankSystem string
 	Start      time.Time
 	End        time.Time
@@ -56,19 +56,22 @@ type Journey struct {
 }
 
 type Entry struct {
-	gorm.Model
-	UserID       int64
+	gorm.Model           `yaml:"-"`
+	UserID       int64   `yaml:"-"`
 	IsPublic     bool
-	CreatedAtStr string
+	CreatedAtStr string  `yaml:"createdat"`
 	Note         int
-	Text         string `gorm:"size:4096"`
+	Text         string  `gorm:"size:4096"`
 }
 
 type Task struct {
-	gorm.Model
-	UserID    int64
-	ChatID    int64
-	MessageID string
-	TaskID    int
+	gorm.Model           `yaml:"-"`
+	UserID    int64		 `yaml:"-"`
+	ChatID    int64		 `yaml:"-"`
+	MessageID string	 `yaml:"-"`
+	TaskID    int		 `yaml:"-"`
+	Date      time.Time  `gorm:"autoCreateTime"`
+	Done      time.Time  `gorm:"autoUpdateTime"`
+	Text      string
 	IsDone    bool
 }

@@ -42,6 +42,11 @@ profile-previous: "Précedant"
 profile-back: "Retour"
 profile-entries: "*Entrées publiques de {{ .User }} (page {{ .Page }}/{{ .MaxPage }})*\n{{ range $e := .Entries }}\n{{ $e.CreatedAtStr }} {{ $e.Note }}/10 `{{ $e.Text }}`{{ end }}"
 
+account-activity: "Mon activité"
+account-entries: "Mes pointages"
+account-download: "Télécharger mes données"
+account-download-document: "📜 Voici toutes vos données!"
+
 task-too-much: "Tu as déjà fini 3 tâches aujourd'hui! Reviens demain 🫡" # space -> emoji
 task-cta: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: Non fini\nClique sur le bouton quand tu as fini!"
 task-done: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: %v\nBien joué soldat! Tu as gagné %v points!"

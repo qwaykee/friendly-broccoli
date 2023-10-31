@@ -21,6 +21,7 @@ import (
 	"strings"
 	"time"
 	"errors"
+	"bytes"
 )
 
 var (
@@ -331,11 +332,11 @@ func main() {
 			private := markup.Data(localizer.Tr(c.Sender().LanguageCode, "survived-button-private"), "private")
 
 			b.Handle(&public, func(c telebot.Context) error {
-				return handlePrivacy(c, true)
+				return handlePrivacy(c, true, number, answer.Text)
 			})
 
 			b.Handle(&private, func(c telebot.Context) error {
-				return handlePrivacy(c, false)
+				return handlePrivacy(c, false, number, answer.Text)
 			})
 
 			markup.Inline(markup.Row(public, private))
@@ -379,50 +380,52 @@ func main() {
 
 			_, err = b.Reply(&msg, localizer.Tr(c.Sender().LanguageCode, "task-unfinished"))
 			return err
-		} else {
-			taskID := rand.Intn(len(config.Tasks))
-			taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[taskID].Task)
+		}
 
-			text := localizer.Tr(c.Sender().LanguageCode, "task-cta", taskText, time.Now().Format("02 Jan 06 15:04"))
+		taskID := rand.Intn(len(config.Tasks))
+		taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[taskID].Task)
 
-			markup := b.NewMarkup()
-			button := markup.Data(localizer.Tr(c.Sender().LanguageCode, "task-button"), randomString(16))
+		text := localizer.Tr(c.Sender().LanguageCode, "task-cta", taskText, time.Now().Format("02 Jan 06 15:04"))
 
-			b.Handle(&button, func(c telebot.Context) error {
-				var task Task
+		markup := b.NewMarkup()
+		button := markup.Data(localizer.Tr(c.Sender().LanguageCode, "task-button"), randomString(16))
 
-				if r := db.Last(&task, Task{
-					UserID: c.Sender().ID,
-					IsDone: false,
-				}); r.RowsAffected > 0 {
-					db.Model(&task).Where(&task).Updates(Task{IsDone: true})
+		b.Handle(&button, func(c telebot.Context) error {
+			var task Task
 
-					taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[task.TaskID].Task)
-					taskPoints := config.Tasks[task.TaskID].Points
+			if r := db.Last(&task, Task{
+				UserID: c.Sender().ID,
+				IsDone: false,
+			}); r.RowsAffected > 0 {
+				db.Model(&task).Where(&task).Updates(Task{IsDone: true})
 
-					text := localizer.Tr(c.Sender().LanguageCode, "task-done", taskText, task.CreatedAt.Format("02 Jan 06 15:04"), task.UpdatedAt.Format("02 Jan 06 15:04"), taskPoints)
+				taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[task.TaskID].Task)
+				taskPoints := config.Tasks[task.TaskID].Points
 
-					return c.Edit(text)
-				}
+				text := localizer.Tr(c.Sender().LanguageCode, "task-done", taskText, task.CreatedAt.Format("02 Jan 06 15:04"), task.UpdatedAt.Format("02 Jan 06 15:04"), taskPoints)
 
-				return nil
-			})
-
-			markup.Inline(markup.Row(button))
-
-			msg, err := b.Send(c.Chat(), text, markup)
-			if err != nil {
-				log.Println(err)
+				return c.Edit(text)
 			}
 
-			db.Create(&Task{
-				UserID:    c.Sender().ID,
-				ChatID:    c.Chat().ID,
-				MessageID: strconv.Itoa(msg.ID),
-				TaskID:    taskID,
-				IsDone:    false,
-			})
+			return nil
+		})
+
+		markup.Inline(markup.Row(button))
+
+		msg, err := b.Send(c.Chat(), text, markup)
+		if err != nil {
+			return err
 		}
+
+		db.Create(&Task{
+			UserID:    c.Sender().ID,
+			ChatID:    c.Chat().ID,
+			MessageID: strconv.Itoa(msg.ID),
+			TaskID:    taskID,
+			Text:      taskText,
+			IsDone:    false,
+		})
+
 		return nil
 	})
 
@@ -482,6 +485,63 @@ func main() {
 		return profile(c, user)
 	})
 
+	b.Handle("/account", func(c telebot.Context) error {
+		var text string
+
+		text = "a"
+
+		markup := b.NewMarkup()
+
+		activity := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-activity"), randomString(16))
+		entries := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-entries"), randomString(16))
+		download := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-download"), randomString(16))
+
+		b.Handle(&activity, func(c telebot.Context) error {
+			return nil
+		})
+
+		b.Handle(&entries, func(c telebot.Context) error {
+			return profileEntries(c, false)
+		})
+
+		b.Handle(&download, func(c telebot.Context) error {
+			c.Notify(telebot.UploadingDocument)
+
+			var journeys []Journey
+			var entries []Entry
+			var tasks []Task
+
+			db.Find(&journeys, "user_id = ?", c.Sender().ID)
+			db.Find(&entries, "user_id = ?", c.Sender().ID)
+			db.Find(&tasks, "user_id = ?", c.Sender().ID)
+
+			data := map[string]interface{}{
+				"journeys": journeys,
+				"entries": entries,
+				"tasks": tasks,
+			}
+
+			marshaled, err := yaml.Marshal(&data)
+			if err != nil {
+				return err
+			}
+
+			document := telebot.Document{
+				File: telebot.FromReader(bytes.NewReader(marshaled)),
+				Caption: localizer.Tr(c.Sender().LanguageCode, "account-download-document"),
+				MIME: "text/yaml",
+				FileName: "data.yml",
+			}
+			
+			_, err := document.Send(b, c.Sender(), &telebot.SendOptions{})
+			return err
+		})
+
+		markup.Inline(markup.Row(activity, entries), markup.Row(download))
+
+		return c.Send(text, markup)
+	})
+
 	b.Handle("/ranks", func(c telebot.Context) error {
 		var text string
 
@@ -539,6 +599,14 @@ func main() {
 			IsPublic: true,
 			Note: 7,
 			Text: "lzihfhlfih",
+		})
+
+		db.Create(&Task{
+			UserID: c.Sender().ID,
+			ChatID: c.Chat().ID,
+			TaskID: 1,
+			Text: "abc",
+			IsDone: false,
 		})
 
 		return c.Send("done")
@@ -617,14 +685,16 @@ func profile(c telebot.Context, user User) error {
 
 	button := markup.Data(localizer.Tr(c.Sender().LanguageCode, "profile-button", user.Username), randomString(16), strconv.FormatInt(user.ID, 10), "1")
 
-	b.Handle(&button, profilePublicEntries)
+	b.Handle(&button, func(c telebot.Context) error {
+		return profileEntries(c, true)
+	})
 
 	markup.Inline(markup.Row(button))
 
 	return c.EditOrSend(text, markup)
 }
 
-func profilePublicEntries(c telebot.Context) error {
+func profileEntries(c telebot.Context, isPublic bool) error {
 	data := strings.Split(c.Callback().Data, "|")
 
 	var user User
@@ -640,13 +710,13 @@ func profilePublicEntries(c telebot.Context) error {
 	var count int64
 	db.Model(&Entry{
 		UserID: user.ID,
-		IsPublic: true,
+		IsPublic: isPublic,
 	}).Count(&count)
 
 	var entries []Entry
 	db.Limit(10).Offset((page - 1) * 10).Find(&entries, Entry{
 		UserID: user.ID,
-		IsPublic: true,
+		IsPublic: isPublic,
 	})
 
 	text := localizer.Tr(c.Sender().LanguageCode, "profile-entries", map[string]interface{}{
@@ -672,8 +742,14 @@ func profilePublicEntries(c telebot.Context) error {
 
 	markup.Inline(markup.Row(previous, next, back))
 
-	b.Handle(&next, profilePublicEntries)
-	b.Handle(&previous, profilePublicEntries)
+	b.Handle(&next, func(c telebot.Context) error {
+		return profileEntries(c, true)
+	})
+
+	b.Handle(&previous, func(c telebot.Context) error {
+		return profileEntries(c, true)
+	})
+
 	b.Handle(&back, func(c telebot.Context) error {
 		id, err := strconv.ParseInt(c.Callback().Data, 10, 64)
 		if err != nil {
@@ -688,7 +764,7 @@ func profilePublicEntries(c telebot.Context) error {
 	return c.Edit(text, markup)
 }
 
-func handlePrivacy(c telebot.Context, isPublic bool) error {
+func handlePrivacy(c telebot.Context, isPublic bool, number int, answer string) error {
 	var privacy, command string
 
 	if isPublic {
@@ -702,7 +778,7 @@ func handlePrivacy(c telebot.Context, isPublic bool) error {
 	entry := &Entry{
 		UserID: c.Sender().ID,
 		Note:   number,
-		Text:   answer.Text,
+		Text:   answer,
 	}
 
 	db.Model(&entry).Where(&entry).Updates(Entry{IsPublic: isPublic})
