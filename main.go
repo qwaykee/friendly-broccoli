@@ -211,9 +211,6 @@ func main() {
 
 	ranksMarkup.Inline(ranksMarkup.Split(2, ranksbuttons)...)
 
-	// initialize check-in buttons
-	var relapsed, survived telebot.Btn
-
 	// handle message count and save user
 	b.Use(func(next telebot.HandlerFunc) telebot.HandlerFunc {
 		return func(c telebot.Context) error {
