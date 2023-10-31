@@ -23,7 +23,7 @@ FriendlyBroccolli golang
 [x] /ranks [rank]
 [-] /help (channels, donation)
 [x] Fix profile and /check relapsed update db doesn't work
-[ ] Fix profile public entries markup
+[x] Fix profile public entries markup
 [ ] Add tasks to config.yml
 [ ] Add images to motivation/
 [x] Task max 3/day

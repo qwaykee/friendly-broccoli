@@ -40,7 +40,7 @@ profile-button: "See %v's public entries"
 profile-next: "Next"
 profile-previous: "Previous"
 profile-back: "Back"
-profile-entries: "*{{ .User }}'s public entries (page {{ .Page }})*\n{{ range $e := .Entries }}\n{{ $e.CreatedAtStr }} {{ $e.Note }}/10 ` {{ $e.Text }} `{{ end }}"
+profile-entries: "*{{ .User }}'s public entries (page {{ .Page }}/{{ .MaxPage }})*\n{{ range $e := .Entries }}\n{{ $e.CreatedAtStr }} {{ $e.Note }}/10 ` {{ $e.Text }} `{{ end }}"
 
 task-too-much: "You already done 3 tasks today! Come back tomorrow 🫡" # space -> emoji
 task-cta: "*🎖️ Task: %v*\nGiven at: %v\nDone at: Not done\nClick on the button when you're done!"

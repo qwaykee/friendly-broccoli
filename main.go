@@ -175,7 +175,7 @@ func init() {
 
 func main() {
 	// make ranks buttons
-	var ranksMarkup telebot.ReplyMarkup
+	var ranksMarkup = b.NewMarkup()
 	var ranksbuttons []telebot.Btn
 
 	for _, rank := range config.Ranks {
@@ -188,11 +188,7 @@ func main() {
 				End:    time.Time{},
 			}
 
-			db.Last(&journey)
-
-			journey.RankSystem = c.Callback().Data
-
-			db.Save(&journey)
+			db.Model(&journey).Updates(map[string]interface{}{"rank_system": c.Callback().Data})
 
 			_, rank := getRank(journey.Start, journey.RankSystem, 0)
 
@@ -254,7 +250,7 @@ func main() {
 			Start:  start,
 		})
 
-		_, err = b.Edit(msg, text, &ranksMarkup)
+		_, err = b.Edit(msg, text, ranksMarkup)
 		return err
 	})
 
@@ -263,8 +259,7 @@ func main() {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-no-journey"))
 		}
 
-		now := time.Now()
-		midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		now, midnight := today()
 
 		if r := db.Find(&Entry{}).Where("created_at BETWEEN ? AND ?", midnight, now); r.RowsAffected >= 3 {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-already-checked-in"))
@@ -322,14 +317,15 @@ func main() {
 			db.Create(&Entry{
 				UserID: c.Sender().ID,
 				CreatedAtStr: time.Now().Format("02 Jan 06 15:04"),
-				Note:   number,
-				Text:   answer.Text,
+				IsPublic: false,
+				Note: number,
+				Text: answer.Text,
 			})
 
-			privacyButtons := b.NewMarkup()
+			markup := b.NewMarkup()
 
-			public := privacyButtons.Data(localizer.Tr(c.Sender().LanguageCode, "survived-button-public"), "public")
-			private := privacyButtons.Data(localizer.Tr(c.Sender().LanguageCode, "survived-button-private"), "private")
+			public := markup.Data(localizer.Tr(c.Sender().LanguageCode, "survived-button-public"), "public")
+			private := markup.Data(localizer.Tr(c.Sender().LanguageCode, "survived-button-private"), "private")
 
 			handlePrivacy := func(c telebot.Context, isPublic bool) error {
 				var privacy, command string
@@ -348,11 +344,7 @@ func main() {
 					Text:   answer.Text,
 				}
 
-				db.Last(&entry)
-
-				entry.IsPublic = true
-
-				db.Save(&entry)
+				db.Model(&entry).Where(&entry).Updates(Entry{IsPublic: isPublic})
 
 				return c.Edit(localizer.Tr(c.Sender().LanguageCode, "survived-saved", privacy, entry.Note, command, entry.Text))
 			}
@@ -365,9 +357,9 @@ func main() {
 				return handlePrivacy(c, false)
 			})
 
-			privacyButtons.Inline(privacyButtons.Row(public, private))
+			markup.Inline(markup.Row(public, private))
 
-			_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "survived-ask-public"), privacyButtons)
+			_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "survived-ask-public"), markup)
 			return err
 		}
 
@@ -377,25 +369,24 @@ func main() {
 	b.Handle("/task", func(c telebot.Context) error {
 		var task Task
 
-		now := time.Now()
-		midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+		now, midnight := today()
 
 		if r := db.Find(&Task{}, "user_id = ? AND updated_at BETWEEN ? AND ?", c.Sender().ID, now, midnight); r.RowsAffected >= 3 {
 			return c.Send(localizer.Tr(c.Sender().LanguageCode, "task-too-much"))
 		}
 
-		if r := db.Find(&task, Task{
+		if r := db.Model(&task).First(Task{
 			UserID: c.Sender().ID,
 			IsDone: false,
 		}); r.RowsAffected > 0 {
 			chat, err := b.ChatByID(task.ChatID)
 			if err != nil {
-				log.Println(err)
+				return err
 			}
 
 			message, err := strconv.Atoi(task.MessageID)
 			if err != nil {
-				log.Println(err)
+				return err
 			}
 
 			msg := telebot.Message{
@@ -412,8 +403,7 @@ func main() {
 			text := localizer.Tr(c.Sender().LanguageCode, "task-cta", taskText, time.Now().Format("02 Jan 06 15:04"))
 
 			markup := b.NewMarkup()
-			buttonText := localizer.Tr(c.Sender().LanguageCode, "task-button")
-			button := markup.Data(buttonText, randomString(16))
+			button := markup.Data(localizer.Tr(c.Sender().LanguageCode, "task-button"), randomString(16))
 
 			b.Handle(&button, func(c telebot.Context) error {
 				var task Task
@@ -422,16 +412,14 @@ func main() {
 					UserID: c.Sender().ID,
 					IsDone: false,
 				}); r.RowsAffected > 0 {
-					task.IsDone = true
-
-					db.Save(&task)
+					db.Model(&task).Updates(Task{IsDone: true})
 
 					taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[task.TaskID].Task)
 					taskPoints := config.Tasks[task.TaskID].Points
 
 					text := localizer.Tr(c.Sender().LanguageCode, "task-done", taskText, task.CreatedAt.Format("02 Jan 06 15:04"), task.UpdatedAt.Format("02 Jan 06 15:04"), taskPoints)
 
-					return c.Edit(c.Message(), text)
+					return c.Edit(text)
 				}
 
 				return nil
@@ -465,9 +453,7 @@ func main() {
 				return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-list", motivationsCategories))
 			}
 
-			if err := c.Notify(telebot.UploadingPhoto); err != nil {
-				return err
-			}
+			c.Notify(telebot.UploadingPhoto)
 
 			if _, ok := motivationsCategories[arg]; ok {
 				for _, m := range config.Motivations {
@@ -534,7 +520,9 @@ func main() {
 		var user User
 
 		if len(c.Args()) > 0 {
-			if r := db.Last(&user, "username = ?", c.Args()[0]); errors.Is(r.Error, gorm.ErrRecordNotFound) {
+			username := strings.Trim(c.Args()[0], "@")
+
+			if r := db.Last(&user, "username = ?", username); errors.Is(r.Error, gorm.ErrRecordNotFound) {
 				// user doesn't exist
 				return c.Send(localizer.Tr(c.Sender().LanguageCode, "profile-text-no-journey"))
 			}
@@ -699,7 +687,7 @@ func profile(c telebot.Context, user User) error {
 
 	markup.Inline(markup.Row(button))
 
-	return c.Send(text, markup)
+	return c.EditOrSend(text, markup)
 }
 
 func profilePublicEntries(c telebot.Context) error {
@@ -715,6 +703,12 @@ func profilePublicEntries(c telebot.Context) error {
 		return c.Send(localizer.Tr(c.Sender().LanguageCode, "err-button"))
 	}
 
+	var count int64
+	db.Model(&Entry{
+		UserID: user.ID,
+		IsPublic: true,
+	}).Count(&count)
+
 	var entries []Entry
 	db.Limit(10).Offset((page - 1) * 10).Find(&entries, Entry{
 		UserID: user.ID,
@@ -724,27 +718,37 @@ func profilePublicEntries(c telebot.Context) error {
 	text := localizer.Tr(c.Sender().LanguageCode, "profile-entries", map[string]interface{}{
 		"User": user.Username,
 		"Page": page,
+		"MaxPage": count / 10 + 1,
 		"Entries": entries,
 	})
 
 	markup := b.NewMarkup()
 
-	next := markup.Data(localizer.Tr(c.Sender().LanguageCode, "next"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page + 1))
-	previous := markup.Data(localizer.Tr(c.Sender().LanguageCode, "previous"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page - 1))
-	back := markup.Data(localizer.Tr(c.Sender().LanguageCode, "back"), randomString(16), strconv.FormatInt(user.ID, 10))
+	var previous, next telebot.Btn
 
-	markup.Inline(markup.Row(next, previous, back))
+	if page > 1 {
+		previous = markup.Data(localizer.Tr(c.Sender().LanguageCode, "profile-previous"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page - 1))
+	}
+
+	if int(count / 10) > page {
+		next = markup.Data(localizer.Tr(c.Sender().LanguageCode, "profile-next"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page + 1))
+	}
+
+	back := markup.Data(localizer.Tr(c.Sender().LanguageCode, "profile-back"), randomString(16), strconv.FormatInt(user.ID, 10))
+
+	markup.Inline(markup.Row(previous, next, back))
 
 	b.Handle(&next, profilePublicEntries)
 	b.Handle(&previous, profilePublicEntries)
 	b.Handle(&back, func(c telebot.Context) error {
-		var user User
-		if r := db.Last(&user, "username = ?", c.Callback().Data); errors.Is(r.Error, gorm.ErrRecordNotFound) {
-			// user doesn't exist
-			return c.Send(localizer.Tr(c.Sender().LanguageCode, "profile-text-no-journey"))
-		} else {
-			return profile(c, user)
+		id, err := strconv.ParseInt(c.Callback().Data, 10, 64)
+		if err != nil {
+			return err
 		}
+
+		var user User
+		db.FirstOrCreate(&user, User{ID: id})
+		return profile(c, user)
 	})
 
 	return c.Edit(text, markup)
@@ -824,4 +828,11 @@ func calculateScore(userID int64, allJourneys bool) int {
 	}
 
 	return score
+}
+
+func today() (time.Time, time.Time) {
+	now := time.Now()
+	midnight := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, now.Location())
+
+	return now, midnight
 }
