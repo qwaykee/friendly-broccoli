@@ -19,7 +19,7 @@ FriendlyBroccolli golang
 [x] /account
 [x] /ranks
 [x] /ranks [rank]
-[-] /help (channels, donation)
+[x] /help (channels, ~~donation~~)
 [ ] /add-task
 [x] Fix profile and /check relapsed update db doesn't work
 [x] Fix profile public entries markup
@@ -27,14 +27,13 @@ FriendlyBroccolli golang
 [x] Change /motivations structs to db
 [x] Finir /account activity
 [x] Add resources to /help (easypeasymethod)
+[x] Add images to motivation/
+[x] Add /update to update motivation folder
+[x] Update config notes.md
 [ ] README.md
 [ ] Add tasks to config.yml
-[ ] Add images to motivation/
-[ ] Remove /dummy
 [ ] /account download edit message instead of sending new one
-[ ] Add /update to update motivation folder
 [ ] Make markup
-[ ] Update config notes.md
 [ ] Add custom language
 
 # Structure
@@ -71,12 +70,14 @@ Score system:
 - 2-10 points/task (3 task max/day)
 
 Config:
-- Token (str)
-- Poller timeout (seconds)
-- Set commands? -> True only once
-- Commands
-- Ranks (name str: name str, score int - levels: days int, level str)
-- Tasks (points int: text str)
+- Token: str
+- Timeout: int
+- SetCommands: bool (true only once)
+- Database: string (db path -> :memory:)
+- MotivationPath: string (motivation folder path without /)
+- Owners: []int64 (users id allowed to run admin commands)
+- NofapChannel: string (t.me link)
+- PersonalChannel: string (t.me link)
 
 Database:
 Journey:
