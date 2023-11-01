@@ -1,4 +1,14 @@
-start-hello: "Bonjour!"
+start-hello: "*🫡 Bienvenue !*\n\n
+      Bonjour ! Je suis FriendlyBrocolli, ton compagnon nofap.\n
+      Chaque tentative s'appelle voyage que tu peux créer avec /new\n\n
+      Après avoir créé un nouveau voyage, tu peux pointer avec /check où tu indiquera si tu as rechuté ou non\n
+      Il est recommandé de pointer tous les jours, si tu ne le faites pas après 7 jours, tu sera automatiquement disqualifié\n\n
+      Si tu as une envie, tu peux faire une tâche donnée qui te donnera entre 2 et 10 points avec /task\n
+      Tu peux faire 3 tâches par jour au maximum, si tu as encore des envies, tu peux faire /motivation\n
+      Chaque jour d'abstinence te rapportera 2 points et chaque pointage te rapportera 1 point\n\n
+      Tu peux voir ton score sur ton /profil public ou ton /compte\n\n
+      En espérant que cette introduction t'aidera, tu peux avoir plus d'informations et de ressources avec /help\n
+      Bonne chance dans ton voyage !\n" # space -> emoji
 
 new-already-running-journey: "Tu as déjà un voyage en cours, arrête-le avec /check avant d'en créer un nouveau."
 new-ask-streak: "Entre le nombre de jour déjà effectués (ou /cancel pour annuler):"
@@ -42,11 +52,16 @@ profile-entries-all: "Tout"
 profile-entries-public: "Publiques"
 profile-entries-private: "Privées"
 
-account-text: "*🏛️ Mon compte*\n\nScore: %v\nGrade: %v (%v in %v days)\nTotal: %v jours\nMoyenne: %v jours\n%v pointages - %v tâches"
+entries-no-account: "Ce compte n'existe pas, essaies /fix si tu veux voir tes propres entrées puis réessaies la commande"
+
+fix-text: "Corrigé avec succès"
+update-text: "Mis à jour avec succès"
+
+account-text: "*🏛️ Mon compte*\n\nScore: %v\nGrade: %v (%v dans %v jours)\nTotal: %v jours\nMoyenne: %v jours\n%v pointages - %v tâches"
 account-activity: "Mon activité"
 account-entries: "Mes pointages"
 account-download: "Télécharger mes données"
-account-download-document: "📜 Voici toutes vos données!\nIl y a 4 catégories, `activity` (activité), `journeys` (voyages), `entries` (pointages) et `tasks` (tâches)\nActivity est trié par date et le reste est trié par type"
+account-download-document: "📜 Voici toutes vos données!\n\nIl y a 4 catégories, `activity` (activité), `journeys` (voyages), `entries` (pointages) et `tasks` (tâches)\n\nActivity est trié par date et le reste est trié par type"
 account-activity-text: "*📍 Mon activité*\n
 {{ range $a := . }}
       \n{{ $a.Item.CreatedAtStr }}
@@ -71,25 +86,27 @@ task-button: "J'ai fini"
 
 task-10-pushups: "Fait 10 pompes"
 
-help-text: "*Commands*
-      \n/new • Start a new journey
-      \n/check • Check-in for your current journey
-      \n/motivation • Send a motivational media
-      \n/motivation list • List the categories of media
-      \n/motivation category/id • Send a motivational media from the category/the selected media
-      \n/ranks • List the ranks systems
-      \n/ranks system • List the full selected rank system
-      \n/profile • See your public profile
-      \n/profile @user • See someone else's profile
-      \n/account • See your private informations and settings
+help-text: "*Commandes*
+      \n/new • Démarrer un nouveau voyage
+      \n/check • Pointer pour le voyage actuel
+      \n/motivation • Envoies un média motivant
+      \n/motivation list • Liste les catégories de médias
+      \n/motivation [category/id] • Envoie un média motivant de la catégories/média sélectionné
+      \n/ranks • Liste les systèmes de grades
+      \n/ranks [system] • Liste en entier le système de grade sélectionné
+      \n/profile • Voir son profil public
+      \n/profile [@user] • Voir le profil public de quelqu'un
+      \n/account • Voir ses pointages, son activité ou télécharger ses données
       \n
-      \n*Statistics*
-      \nUsers: %v
-      \nMessage count: %v
-      \nUp since %v
+      \n*Statistiques*
+      \nUtilisateurs: %v
+      \nNombre de messages: %v
+      \nTemps de réponse moyen: %v
+      \n(Inclus les temps de réponse des utilisateurs)
+      \nEn ligne depuis %v
       \n
-      \n*About*
-      \nMade by @qwaykee
-      \nBot's channel: t.me/
-      \nPersonal channel: t.me/
+      \n*À propos*
+      \nFait par @qwaykee
+      \nCanal du bot: t.me/
+      \nCanal personel: t.me/
       "

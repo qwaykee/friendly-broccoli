@@ -8,6 +8,7 @@ import (
 	"github.com/qwaykee/cauliflower"
 	"github.com/schollz/closestmatch"
 	"gopkg.in/telebot.v3"
+	"gopkg.in/telebot.v3/middleware"
 	"gopkg.in/yaml.v3"
 
 	"embed"
@@ -33,7 +34,7 @@ var (
 	cm        *closestmatch.ClosestMatch
 
 	messageCount          int
-	chatToChannel         = make(map[int64](*chan string))
+	responseTime          []time.Duration
 	rankButtons           = []telebot.Btn{}
 	motivationsCategories = make(map[string]int)
 	start                 time.Time
@@ -46,6 +47,8 @@ var (
 )
 
 func init() {
+	log.Println("initialization")
+
 	// load config
 	if err := yaml.Unmarshal(configFile, &config); err != nil {
 		log.Fatal(err)
@@ -68,66 +71,10 @@ func init() {
 		log.Fatalf("gorm: %v", err)
 	}
 
-	db.AutoMigrate(&User{}, &Journey{}, &Entry{}, &Task{}, &Motivation{})
+	db.AutoMigrate(&User{}, &Journey{}, &Entry{}, &Task{}, &Motivation{}, &TaskData{})
 
-	// load motivation images
-	var motivations []Motivation
-	var matches []string
-
-	if err := filepath.Walk(config.MotivationPath, func(path string, file fs.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		if file.IsDir() {
-			return nil
-		}
-
-		s := strings.Split(file.Name(), ".")
-
-		if len(s) > 4 {
-			matches = append(matches, s[0], s[2])
-			motivationsCategories[s[2]] += 1
-
-			place, err := strconv.Atoi(s[1])
-			if err != nil {
-				return err
-			}
-
-			motivations = append(motivations, Motivation{
-				UUID:      randomString(16),
-				Pack:      s[0],
-				PackPlace: place,
-				Category:  s[2],
-				Language:  s[3],
-				Extension: s[4],
-				Path:      path,
-			})
-
-			return nil
-		}
-
-		matches = append(matches, s[0], s[1])
-		motivationsCategories[s[1]] += 1
-
-		motivations = append(motivations, Motivation{
-			UUID:      randomString(16),
-			ID:        s[0],
-			Category:  s[1],
-			Language:  s[2],
-			Extension: s[3],
-			Path:      path,
-		})
-
-		return nil
-	}); err != nil {
-		log.Fatalf("filepath: %v", err)
-	}
-
-	db.Create(&motivations)
-
-	// initialize closest match
-	cm = closestmatch.New(removeDuplicate(matches), []int{2})
+	// load motivation images into db and closest matches
+	update()
 
 	// create bot and set commands
 	b, err = telebot.NewBot(telebot.Settings{
@@ -181,22 +128,19 @@ func main() {
 		ranksbuttons = append(ranksbuttons, button)
 
 		b.Handle(&button, func(c telebot.Context) error {
-			journey := &Journey{
-				UserID: c.Sender().ID,
-				End:    time.Time{},
-			}
+			var j Journey
 
-			db.Model(&journey).Where(&journey).Updates(map[string]interface{}{"rank_system": c.Callback().Data})
+			db.Model(&j).Where("user_id = ? AND end = ?", c.Sender().ID, time.Time{}).Updates(Journey{RankSystem: c.Callback().Data}).First(&j)
 
-			_, rank := getRank(journey.Start, journey.RankSystem, 0)
+			_, rank := getRank(j.Start, j.RankSystem, 0)
 
 			text := localizer.Tr(
 				c.Sender().LanguageCode,
 				"new-saved",
 				rank,
-				journey.RankSystem,
-				journey.Start.Format("02 Jan 06"),
-				int(time.Now().Sub(journey.Start).Hours()/24),
+				j.RankSystem,
+				j.Start.Format("02 Jan 06"),
+				int(time.Now().Sub(j.Start).Hours()/24),
 			)
 
 			return c.Edit(text)
@@ -208,8 +152,17 @@ func main() {
 	// handle message count
 	b.Use(func(next telebot.HandlerFunc) telebot.HandlerFunc {
 		return func(c telebot.Context) error {
+			start := time.Now()
+
 			messageCount += 1
-			return next(c)
+			err := next(c)
+
+			t := time.Now().Sub(start)
+			responseTime = append(responseTime, t)
+
+			log.Println(t)
+
+			return err
 		}
 	})
 
@@ -515,10 +468,42 @@ func main() {
 		var users int64
 		db.Model(&Journey{}).Distinct("user_id").Count(&users)
 
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "help-text", users, messageCount, start.Format("02 Jan 06 15:04")))
+		var totalResponseTime time.Duration
+		for _, t := range responseTime {
+			totalResponseTime += t
+		}
+
+		averageResponseTime := totalResponseTime / time.Duration(len(responseTime))
+
+		return c.Send(localizer.Tr(c.Sender().LanguageCode, "help-text", users, messageCount, averageResponseTime, start.Format("02 Jan 06 15:04")))
 	})
 
-	b.Handle("/dummy", func(c telebot.Context) error {
+	b.Handle("/fix", func(c telebot.Context) error {
+		db.Save(&User{
+			ID: c.Sender().ID,
+			Username: c.Sender().Username,
+		})
+
+		return c.Send(localizer.Tr(c.Sender().LanguageCode, "fix-text"))
+	})
+
+	admin := b.Group()
+
+	admin.Use(middleware.Whitelist(config.Owners...))
+
+	admin.Handle("/update", func(c telebot.Context) error {
+		if err := update(); err != nil {
+			return err
+		}
+
+		return c.Send(localizer.Tr(c.Sender().LanguageCode, "update-text"))
+	})
+
+	admin.Handle("/add-task", func(c telebot.Context) error {
+		return nil
+	})
+
+	admin.Handle("/dummy", func(c telebot.Context) error {
 		db.Create(&User{
 			ID: c.Sender().ID,
 			Username: c.Sender().Username,
@@ -646,7 +631,7 @@ func profileEntries(c telebot.Context, privacy string, backHandler func(c telebo
 
 	var user User
 	if r := db.First(&user, data[0]); errors.Is(r.Error, gorm.ErrRecordNotFound) {
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "err-button"))
+		return c.Send(localizer.Tr(c.Sender().LanguageCode, "entries-no-account"))
 	}
 
 	page, err := strconv.Atoi(data[1])
@@ -882,6 +867,67 @@ func account(c telebot.Context) error {
 	return c.EditOrSend(text, markup)
 }
 
+func update() error {
+	var motivations []Motivation
+	var matches []string
+
+	if err := filepath.Walk(config.MotivationPath, func(path string, file fs.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if file.IsDir() {
+			return nil
+		}
+
+		s := strings.Split(file.Name(), ".")
+
+		if len(s) > 4 {
+			matches = append(matches, s[0], s[2])
+			motivationsCategories[s[2]] += 1
+
+			place, err := strconv.Atoi(s[1])
+			if err != nil {
+				return err
+			}
+
+			motivations = append(motivations, Motivation{
+				UUID:      randomString(16),
+				Pack:      s[0],
+				PackPlace: place,
+				Category:  s[2],
+				Language:  s[3],
+				Extension: s[4],
+				Path:      path,
+			})
+
+			return nil
+		}
+
+		matches = append(matches, s[0], s[1])
+		motivationsCategories[s[1]] += 1
+
+		motivations = append(motivations, Motivation{
+			UUID:      randomString(16),
+			ID:        s[0],
+			Category:  s[1],
+			Language:  s[2],
+			Extension: s[3],
+			Path:      path,
+		})
+
+		return nil
+	}); err != nil {
+		log.Fatalf("filepath: %v", err)
+	}
+
+	db.Create(&motivations)
+
+	cm = closestmatch.New(removeDuplicate(matches), []int{2})
+
+	return nil
+}
+
 func handlePrivacy(c telebot.Context, isPublic bool, number int, answer string) error {
 	var privacy, command string
 
@@ -973,34 +1019,38 @@ func calculateScore(userID int64, allJourneys bool) int {
 	score := 0
 
 	var tasks []Task
+	var entries int64
 
 	if allJourneys {
 		var journeys []Journey
 		db.Select("start", "end").Where("user_id = ?", userID).Find(&journeys)
 
-		for _, journey := range journeys {
-			end := journey.End
+		for _, j := range journeys {
+			end := j.End
 			if end.IsZero() {
 				end = time.Now()
 			}
-			score += int(end.Sub(journey.Start).Hours() / 24) * 2
+			score += int(end.Sub(j.Start).Hours() / 24) * 2
 		}
 
 		db.Select("task_id").Where("user_id = ?", userID).Find(&tasks)
+		db.Model(&Entry{}).Where("user_id = ?", userID).Count(&entries)
 	} else {
-		var journey Journey
-		db.Select("start").Where("user_id = ? AND end = ?", userID, time.Time{}).Last(&journey)
+		var j Journey
+		db.Select("start").Where("user_id = ? AND end = ?", userID, time.Time{}).Last(&j)
 
-		if !journey.Start.IsZero() {
-			score += int(time.Now().Sub(journey.Start).Hours() / 24) * 2
-			db.Select("task_id").Where("? < updated_at AND user_id = ?", journey.Start, userID).Find(&tasks)
+		if !j.Start.IsZero() {
+			score += int(time.Now().Sub(j.Start).Hours() / 24) * 2
+			db.Select("task_id").Where("user_id = ? AND updated_at > ?", userID, j.Start).Find(&tasks)
+			db.Model(&Entry{}).Where("user_id = ? AND created_at > ?", userID, j.Start).Count(&entries)
 		}
-
 	}
 	
 	for _, task := range tasks {
 		score += config.Tasks[task.TaskID].Points
 	}
+
+	score += int(entries)
 
 	return score
 }

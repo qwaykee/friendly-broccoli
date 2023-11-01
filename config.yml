@@ -3,6 +3,7 @@ timeout: 10
 setCommands: False
 database: ':memory:'
 motivationPath: 'motivation'
+owners: [5041119277]
 
 commands:
   start: 'Start the bot'

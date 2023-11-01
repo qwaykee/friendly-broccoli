@@ -1,4 +1,14 @@
-start-hello: "Hello!"
+start-hello: "*🫡 Welcome!*\n\n
+      Hello! I'm FriendlyBrocolli, your nofap companion.\n\n
+      Each attempt of quitting is called a journey that you can create with /new\n\n
+      After creating a new journey, you can check-in with /check where you will indicate if you relapsed or not\n
+      It is recommended to check-in everyday, if you don't after 7 days, you will be automatically disqualified\n\n
+      If you get an urge, you can do a given /task that will reward you with 2-10 points\n
+      You can do 3 tasks/day maximum, if you still get urges, you can get /motivation\n
+      Each clean day will reward you with 2 points and each check-in will reward you with 1 point\n\n
+      You can see your score on your public /profile or your /account\n\n
+      Hopefully, this introduction will help you, you can get more informations and resources with /help\n
+      Good luck in your journey!" # space -> emoji
 
 new-already-running-journey: "You already have a running journey, stop it with /check before creating a new one."
 new-ask-streak: "Please enter your current streak in number of days (or /cancel):"
@@ -42,11 +52,16 @@ profile-entries-all: "all"
 profile-entries-public: "public"
 profile-entries-private: "private"
 
+entries-no-account: "This account doesn't exist, try /fix if you want to see you own entries then retry the command"
+
+fix-text: "Successfully fixed"
+update-text: "Successfully updated"
+
 account-text: "*🏛️ My account*\n\nScore: %v\nRank: %v (%v in %v days)\nTotal: %v days\nAverage: %v days\n%v entries - %v tasks"
 account-activity: "My activity"
 account-entries: "My entries"
 account-download: "Download my data"
-account-download-document: "📜 Here is all your data!\nThere is 4 categories,`activity`, `journeys`, `entries` and `tasks`\nActivity is sorted by time and the rest is sorted by type"
+account-download-document: "📜 Here is all your data!\n\nThere is 4 categories,`activity`, `journeys`, `entries` and `tasks`\n\nActivity is sorted by time and the rest is sorted by type"
 account-activity-text: "*📍 My activity*\n
 {{ range $a := . }}
       \n{{ $a.Item.CreatedAtStr }}
@@ -76,16 +91,18 @@ help-text: "*Commands*
       \n/check • Check-in for your current journey
       \n/motivation • Send a motivational media
       \n/motivation list • List the categories of media
-      \n/motivation category/id • Send a motivational media from the category/the selected media
+      \n/motivation [category/id] • Send a motivational media from the category/the selected media
       \n/ranks • List the ranks systems
-      \n/ranks system • List the full selected rank system
+      \n/ranks [system] • List the full selected rank system
       \n/profile • See your public profile
-      \n/profile @user • See someone else's profile
-      \n/account • See your private informations and settings
+      \n/profile [@user] • See someone else's profile
+      \n/account • See your entries, activity or download your data
       \n
       \n*Statistics*
       \nUsers: %v
       \nMessage count: %v
+      \nAverage response time: %v
+      \n(Include response time of users)
       \nUp since %v
       \n
       \n*About*

@@ -11,6 +11,7 @@ type Config struct {
     SetCommands    bool
     Database       string
     MotivationPath string `yaml:"motivationPath"`
+    Owners         []int64
     Commands       map[string]string
     Ranks          map[string]Rank
     Tasks          map[int]TaskData
@@ -25,6 +26,7 @@ type Rank struct {
 }
 
 type TaskData struct {
+    gorm.Model
     Points int
     Task   string
 }
