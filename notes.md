@@ -35,7 +35,6 @@ FriendlyBroccolli golang
 [ ] Add /update to update motivation folder
 [ ] Make markup
 [ ] Update config notes.md
-[ ] Make no check-in system
 [ ] Add custom language
 
 # Structure
@@ -70,11 +69,6 @@ Score system:
 - 1 point/check-in (3 checks max/day)
 - 2 points/day
 - 2-10 points/task (3 task max/day)
-
-No check-in:
-- 3 days, remember
-- 6 days, warn expiration
-- 7 days, expire journey
 
 Config:
 - Token (str)

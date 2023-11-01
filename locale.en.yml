@@ -3,7 +3,7 @@ start-hello: "*🫡 Welcome!*
       \n\n*⛰️ Journeys and check-ins*
       \nEach attempt of quitting is called a journey that you can create with /new
       \nAfter creating a new journey, you can check-in with /check where you will indicate if you relapsed or not
-      \nIt is recommended to check-in everyday, if you don't after 7 days, you will be automatically disqualified
+      \nIt is recommended to check-in at least once a day when you start
       \n\n*🛠️ Score, tasks and motivation*
       \nIf you get an urge, you can do a given /task that will reward you with 2-10 points
       \nYou can do 3 tasks/day maximum, if you still get urges, you can get /motivation

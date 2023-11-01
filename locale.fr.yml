@@ -3,7 +3,7 @@ start-hello: "*🫡 Bienvenue !*
       \n\n*⛰️ Système de voyage et de pointage*
       \nChaque tentative s'appelle voyage que tu peux créer avec /new
       \nAprès avoir créé un nouveau voyage, tu peux pointer avec /check où tu indiquera si tu as rechuté ou non
-      \nIl est recommandé de pointer tous les jours, si tu ne le faites pas après 7 jours, tu sera automatiquement disqualifié
+      \nIl est recommandé de pointer au moins une fois par jour quand tu commences
       \n\n*🛠️ Score, tâches et motivation*
       \nSi tu as une envie, tu peux faire une tâche donnée qui te donnera entre 2 et 10 points avec /task
       \nTu peux faire 3 tâches par jour au maximum, si tu as encore des envies, tu peux faire /motivation
