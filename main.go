@@ -156,11 +156,8 @@ func main() {
 
 			messageCount += 1
 			err := next(c)
-
-			t := time.Now().Sub(start)
-			responseTime = append(responseTime, t)
-
-			log.Println(t)
+			
+			responseTime = append(responseTime, time.Now().Sub(start))
 
 			return err
 		}

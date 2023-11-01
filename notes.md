@@ -10,7 +10,7 @@ FriendlyBroccolli golang
 [x] Remove replace in go.mod
 [x] Remove comment when issue fixed (i18n.SetDefaultLanguage("en-US")) // removed line
 [x] Fix cauliflower and integrate
-[ ] /start
+[x] /start
 [x] /new
 [x] /check
 [x] /task
@@ -40,7 +40,7 @@ FriendlyBroccolli golang
 
 # Structure
 Commands:
-- /start -> guided visit
+- /start -> tutorial
 - /new -> new journey (days, save to db, rank system, update to db)
 - /check -> new entry (max 3/day, relapse?, note, text, public?, save to db)
 - /task -> random task to complete (max 3/day, completed?, save to db)
