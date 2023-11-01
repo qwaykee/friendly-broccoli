@@ -1,6 +1,14 @@
 # Nofap bot
 FriendlyBroccolli golang
 
+Build android: CC=/home/titi/Android/Sdk/ndk/android-ndk-r26b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang GOOS=android GOARCH=arm64 CGO_ENABLED=1 go build
+
+Build and push: CC=/home/titi/Android/Sdk/ndk/android-ndk-r26b/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android21-clang GOOS=android GOARCH=arm64 CGO_ENABLED=1 go build ; adb push "/home/titi/Dev/telegram/friendly-brocolli/main" /data/local/tmp ; adb push "/home/titi/Dev/telegram/friendly-brocolli/motivation" /data/local/tmp/motivation ; adb shell "chmod +x /data/local/tmp/main" ; adb shell "data/local/tmp/main"
+
+Android build: Change motivationPath in config to absolute path
+
+Get android device cpu architecture: adb shell getprop ro.product.cpu.abi
+
 # To-do
 [x] Middleware message count
 [x] Bot.SetCommands()
