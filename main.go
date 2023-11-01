@@ -246,8 +246,9 @@ func main() {
 		text := localizer.Tr(c.Sender().LanguageCode, "new-ask-rank", start.Format("02 Jan 06"))
 
 		db.Create(&Journey{
+			CreatedAtStr: time.Now().Format("02 Jan 06 15:04"),
 			UserID: c.Sender().ID,
-			Start:  start,
+			Start: start,
 		})
 
 		_, err = b.Edit(msg, text, ranksMarkup)
@@ -319,8 +320,8 @@ func main() {
 			}
 
 			db.Create(&Entry{
-				UserID: c.Sender().ID,
 				CreatedAtStr: time.Now().Format("02 Jan 06 15:04"),
+				UserID: c.Sender().ID,
 				IsPublic: false,
 				Note: number,
 				Text: answer.Text,
@@ -359,22 +360,14 @@ func main() {
 
 		var task Task
 
-		if r := db.Model(&task).First(Task{
-			UserID: c.Sender().ID,
-			IsDone: false,
-		}); r.RowsAffected > 0 {
-			chat, err := b.ChatByID(task.ChatID)
-			if err != nil {
-				return err
-			}
-
-			message, err := strconv.Atoi(task.MessageID)
+		if r := db.First(&task, "user_id = ? AND is_done = ?", c.Sender().ID, false); r.RowsAffected > 0 {
+			chat, err := b.ChatByID(task.UserID)
 			if err != nil {
 				return err
 			}
 
 			msg := telebot.Message{
-				ID:   message,
+				ID:   task.MessageID,
 				Chat: chat,
 			}
 
@@ -393,11 +386,10 @@ func main() {
 		b.Handle(&button, func(c telebot.Context) error {
 			var task Task
 
-			if r := db.Last(&task, Task{
-				UserID: c.Sender().ID,
-				IsDone: false,
-			}); r.RowsAffected > 0 {
-				db.Model(&task).Where(&task).Updates(Task{IsDone: true})
+			if r := db.First(&task, "user_id = ? AND is_done = ?", c.Sender().ID, false); r.RowsAffected > 0 {
+				if r := db.Model(&task).Updates(Task{IsDone: true}); r.Error != nil {
+					log.Println(r.Error)
+				}
 
 				taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[task.TaskID].Task)
 				taskPoints := config.Tasks[task.TaskID].Points
@@ -418,12 +410,12 @@ func main() {
 		}
 
 		db.Create(&Task{
-			UserID:    c.Sender().ID,
-			ChatID:    c.Chat().ID,
-			MessageID: strconv.Itoa(msg.ID),
-			TaskID:    taskID,
-			Text:      taskText,
-			IsDone:    false,
+			CreatedAtStr: time.Now().Format("02 Jan 06 15:04"),
+			UserID: c.Sender().ID,
+			MessageID: msg.ID,
+			TaskID: taskID,
+			Text: taskText,
+			IsDone: false,
 		})
 
 		return nil
@@ -533,22 +525,23 @@ func main() {
 		})
 
 		db.Create(&Journey{
+			CreatedAtStr: time.Now().Format("02 Jan 06 15:04"),
 			UserID: c.Sender().ID,
 			RankSystem: "memes",
 			Start: time.Now(),
 		})
 
 		db.Create(&Entry{
-			UserID: c.Sender().ID,
 			CreatedAtStr: time.Now().Format("02 Jan 06 15:04"),
+			UserID: c.Sender().ID,
 			IsPublic: true,
 			Note: 7,
 			Text: "lzihfhlfih",
 		})
 
 		db.Create(&Task{
+			CreatedAtStr: time.Now().Format("02 Jan 06 15:04"),
 			UserID: c.Sender().ID,
-			ChatID: c.Chat().ID,
 			TaskID: 1,
 			Text: "abc",
 			IsDone: false,
@@ -695,14 +688,14 @@ func profileEntries(c telebot.Context, privacy string, backHandler func(c telebo
 	var previous, next telebot.Btn
 
 	if page > 1 {
-		previous = markup.Data(localizer.Tr(c.Sender().LanguageCode, "profile-previous"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page - 1))
+		previous = markup.Data(localizer.Tr(c.Sender().LanguageCode, "pagination-previous"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page - 1))
 	}
 
 	if int(count / 10) > page {
-		next = markup.Data(localizer.Tr(c.Sender().LanguageCode, "profile-next"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page + 1))
+		next = markup.Data(localizer.Tr(c.Sender().LanguageCode, "pagination-next"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page + 1))
 	}
 
-	back := markup.Data(localizer.Tr(c.Sender().LanguageCode, "profile-back"), randomString(16), strconv.FormatInt(user.ID, 10))
+	back := markup.Data(localizer.Tr(c.Sender().LanguageCode, "pagination-back"), randomString(16), strconv.FormatInt(user.ID, 10))
 
 	markup.Inline(markup.Row(previous, next, back))
 
@@ -740,7 +733,47 @@ func profileEntries(c telebot.Context, privacy string, backHandler func(c telebo
 func account(c telebot.Context) error {
 	var text string
 
-	text = "a"
+	var j Journey
+	if r := db.First(&j, "user_id = ?", c.Sender().ID); errors.Is(r.Error, gorm.ErrRecordNotFound) {
+		// user doesn't have journeys
+		return c.Send(localizer.Tr(c.Sender().LanguageCode, "profile-text-no-journey"))
+	}
+
+	var a []Journey
+	db.Select("start").Find(&a, &Journey{
+		UserID: c.Sender().ID,
+	})
+
+	var totalDays int
+	for _, j := range a {
+		totalDays += int(time.Now().Sub(j.Start).Hours() / 24)
+	}
+
+	averageDays := totalDays
+
+	if totalDays > 0 && len(a) > 0 {
+		averageDays = totalDays / len(a)
+	}
+
+	var entriesCount, tasksCount int64
+	db.Model(&Entry{}).Where("user_id = ?", c.Sender().ID).Count(&entriesCount)
+	db.Model(&Task{}).Where("user_id = ?", c.Sender().ID).Count(&tasksCount)
+
+	_, currentRank := getRank(j.Start, j.RankSystem, 0)
+	daysLeft, nextRank := getRank(j.Start, j.RankSystem, 1)
+
+	text = localizer.Tr(
+		c.Sender().LanguageCode,
+		"account-text",
+		calculateScore(c.Sender().ID, true),
+		currentRank,
+		nextRank,
+		daysLeft,
+		totalDays,
+		averageDays,
+		entriesCount,
+		tasksCount,
+	)
 
 	markup := b.NewMarkup()
 
@@ -749,7 +782,41 @@ func account(c telebot.Context) error {
 	download := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-download"), randomString(16))
 
 	b.Handle(&activity, func(c telebot.Context) error {
-		return nil
+		var journeys []Journey
+		var entries []Entry
+		var tasks []Task
+
+		db.Find(&journeys, "user_id = ?", c.Sender().ID)
+		db.Find(&entries, "user_id = ?", c.Sender().ID)
+		db.Find(&tasks, "user_id = ?", c.Sender().ID)
+
+		var activities []Activity
+
+		for _, j := range journeys {
+			activities = append(activities, Activity{CreatedAt: j.CreatedAt, Type: "journey", Item: j})
+		}
+
+		for _, e := range entries {
+			activities = append(activities, Activity{CreatedAt: e.CreatedAt, Type: "entry", Item: e})
+		}
+
+		for _, t := range tasks {
+			activities = append(activities, Activity{CreatedAt: t.CreatedAt, Type: "task", Item: t})
+		}
+
+		sort.SliceStable(activities, func(i, j int) bool {
+			return activities[i].CreatedAt.Before(activities[j].CreatedAt)
+		})
+
+		markup := b.NewMarkup()
+
+		back := markup.Data(localizer.Tr(c.Sender().LanguageCode, "pagination-back"), randomString(16))
+
+		b.Handle(&back, account)
+
+		markup.Inline(markup.Row(back))
+
+		return c.EditOrSend(localizer.Tr(c.Sender().LanguageCode, "account-activity-text", activities), markup)
 	})
 
 	b.Handle(&entries, func(c telebot.Context) error {
@@ -759,6 +826,7 @@ func account(c telebot.Context) error {
 	b.Handle(&download, func(c telebot.Context) error {
 		c.Notify(telebot.UploadingDocument)
 
+		var activities []Activity
 		var journeys []Journey
 		var entries []Entry
 		var tasks []Task
@@ -767,7 +835,24 @@ func account(c telebot.Context) error {
 		db.Find(&entries, "user_id = ?", c.Sender().ID)
 		db.Find(&tasks, "user_id = ?", c.Sender().ID)
 
+		for _, j := range journeys {
+			activities = append(activities, Activity{CreatedAt: j.CreatedAt, Type: "journey", Item: j})
+		}
+
+		for _, e := range entries {
+			activities = append(activities, Activity{CreatedAt: e.CreatedAt, Type: "entry", Item: e})
+		}
+
+		for _, t := range tasks {
+			activities = append(activities, Activity{CreatedAt: t.CreatedAt, Type: "task", Item: t})
+		}
+
+		sort.SliceStable(activities, func(i, j int) bool {
+			return activities[i].CreatedAt.Before(activities[j].CreatedAt)
+		})
+
 		data := map[string]interface{}{
+			"activity": activities,
 			"journeys": journeys,
 			"entries": entries,
 			"tasks": tasks,

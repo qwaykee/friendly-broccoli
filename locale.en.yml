@@ -37,25 +37,31 @@ profile-text-no-journey: "*👤 No journey for this user*"
 profile-current-journey: "Current journey"
 profile-last-journey: "Last journey"
 profile-button: "See %v's public entries"
-profile-next: "Next"
-profile-previous: "Previous"
-profile-back: "Back"
-profile-entries: "*{{ .User }}'s {{ .Privacy }} entries (page {{ .Page }}/{{ .MaxPage }})*\n{{ range $e := .Entries }}\n{{ $e.CreatedAtStr }} {{ $e.Note }}/10 ` {{ $e.Text }} `{{ end }}"
+profile-entries: "*📜 {{ .User }}'s {{ .Privacy }} entries (page {{ .Page }}/{{ .MaxPage }})*\n{{ range $e := .Entries }}\n{{ $e.CreatedAtStr }} {{ $e.Note }}/10 ` {{ $e.Text }} `{{ end }}"
 profile-entries-all: "all"
 profile-entries-public: "public"
 profile-entries-private: "private"
 
-account-text: "*My account*
-Score: %v
-Rank: %v (%v in %v days)
-Total days: %v
-Average days: %v
-%v entries - %v tasks
-"
+account-text: "*🏛️ My account*\n\nScore: %v\nRank: %v (%v in %v days)\nTotal: %v days\nAverage: %v days\n%v entries - %v tasks"
 account-activity: "My activity"
 account-entries: "My entries"
 account-download: "Download my data"
-account-download-document: "📜 Here is all your data!"
+account-download-document: "📜 Here is all your data!\nThere is 4 categories,`activity`, `journeys`, `entries` and `tasks`\nActivity is sorted by time and the rest is sorted by type"
+account-activity-text: "*📍 My activity*\n
+{{ range $a := . }}
+      \n{{ $a.Item.CreatedAtStr }}
+      {{ if (eq $a.Type \"journey\") }}
+            New journey
+      {{ else if (eq $a.Type \"entry\") }}
+            Check-in ({{ $a.Item.Note }}/10)
+      {{ else if (eq $a.Type \"task\") }}
+            Task ({{ $a.Item.Text }})
+      {{ end }}
+{{ end }}"
+
+pagination-next: "Next"
+pagination-previous: "Previous"
+pagination-back: "Back"
 
 task-too-much: "You already done 3 tasks today! Come back tomorrow 🫡" # space -> emoji
 task-cta: "*🎖️ Task: %v*\nGiven at: %v\nDone at: Not done\nClick on the button when you're done!"
