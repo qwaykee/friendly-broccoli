@@ -1,20 +1,20 @@
-start-hello: "*🫡 Welcome!*\n\n
-      Hello! I'm FriendlyBrocolli, your nofap companion.\n\n
-      *⛰️ Journeys and check-ins*\n
-      Each attempt of quitting is called a journey that you can create with /new\n
-      After creating a new journey, you can check-in with /check where you will indicate if you relapsed or not\n
-      It is recommended to check-in everyday, if you don't after 7 days, you will be automatically disqualified\n\n
-      *🛠️ Score, tasks and motivation*\n
-      If you get an urge, you can do a given /task that will reward you with 2-10 points\n
-      You can do 3 tasks/day maximum, if you still get urges, you can get /motivation\n
-      Each clean day will reward you with 2 points and each check-in will reward you with 1 point\n\n
-      *👤 Profile and account*\n
-      You can see your score on your public /profile or your /account\n
-      Your profile will show your public check-ins and basic statistics\n
-      Your account will show all your check-ins and will allow you to download data\n\n
-      *ℹ️ Need help?*\n
-      Hopefully, this introduction will help you, you can get more informations and resources with /help\n
-      Good luck in your journey!" # space -> emoji
+start-hello: "*🫡 Welcome!*
+      \n\nHello! I'm FriendlyBrocolli, your nofap companion.
+      \n\n*⛰️ Journeys and check-ins*
+      \nEach attempt of quitting is called a journey that you can create with /new
+      \nAfter creating a new journey, you can check-in with /check where you will indicate if you relapsed or not
+      \nIt is recommended to check-in everyday, if you don't after 7 days, you will be automatically disqualified
+      \n\n*🛠️ Score, tasks and motivation*
+      \nIf you get an urge, you can do a given /task that will reward you with 2-10 points
+      \nYou can do 3 tasks/day maximum, if you still get urges, you can get /motivation
+      \nEach clean day will reward you with 2 points and each check-in will reward you with 1 point
+      \n\n*👤 Profile and account*
+      \nYou can see your score on your public /profile or your /account
+      \nYour profile will show your public check-ins and basic statistics
+      \nYour account will show all your check-ins and will allow you to download data
+      \n\n*ℹ️ Need help?*
+      \nHopefully, this introduction will help you, you can get more informations and resources with /help
+      \nGood luck in your journey!" # space -> emoji
 
 new-already-running-journey: "You already have a running journey, stop it with /check before creating a new one."
 new-ask-streak: "Please enter your current streak in number of days (or /cancel):"
@@ -103,6 +103,8 @@ help-text: "*Commands*
       \n/profile • See your public profile
       \n/profile [@user] • See someone else's profile
       \n/account • See your entries, activity or download your data
+      \n
+      \n*Resources*
       \n
       \n*Statistics*
       \nUsers: %v

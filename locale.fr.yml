@@ -1,20 +1,20 @@
-start-hello: "*🫡 Bienvenue !*\n
-      Bonjour ! Je suis FriendlyBrocolli, ton compagnon nofap.\n\n
-      *⛰️ Système de voyage et de pointage*\n
-      Chaque tentative s'appelle voyage que tu peux créer avec /new\n
-      Après avoir créé un nouveau voyage, tu peux pointer avec /check où tu indiquera si tu as rechuté ou non\n
-      Il est recommandé de pointer tous les jours, si tu ne le faites pas après 7 jours, tu sera automatiquement disqualifié\n\n
-      *🛠️ Score, tâches et motivation*\n
-      Si tu as une envie, tu peux faire une tâche donnée qui te donnera entre 2 et 10 points avec /task\n
-      Tu peux faire 3 tâches par jour au maximum, si tu as encore des envies, tu peux faire /motivation\n
-      Chaque jour d'abstinence te rapportera 2 points et chaque pointage te rapportera 1 point\n\n
-      *👤 Profil et compte*\n
-      Tu peux voir ton score sur ton /profil public ou ton /compte\n
-      Ton profil affichera tes entrées publiques et des statistiques basiques\n
-      Ton compte affichera lui toutes entrées et un moyen de télécharger tes données\n\n
-      *ℹ️ Besoin d'aide?*\n
-      En espérant que cette introduction t'aidera, tu peux avoir plus d'informations et de ressources avec /help\n
-      Bonne chance dans ton voyage !\n" # space -> emoji
+start-hello: "*🫡 Bienvenue !*
+      \nBonjour ! Je suis FriendlyBrocolli, ton compagnon nofap.
+      \n\n*⛰️ Système de voyage et de pointage*
+      \nChaque tentative s'appelle voyage que tu peux créer avec /new
+      \nAprès avoir créé un nouveau voyage, tu peux pointer avec /check où tu indiquera si tu as rechuté ou non
+      \nIl est recommandé de pointer tous les jours, si tu ne le faites pas après 7 jours, tu sera automatiquement disqualifié
+      \n\n*🛠️ Score, tâches et motivation*
+      \nSi tu as une envie, tu peux faire une tâche donnée qui te donnera entre 2 et 10 points avec /task
+      \nTu peux faire 3 tâches par jour au maximum, si tu as encore des envies, tu peux faire /motivation
+      \nChaque jour d'abstinence te rapportera 2 points et chaque pointage te rapportera 1 point
+      \n\n*👤 Profil et compte*
+      \nTu peux voir ton score sur ton /profil public ou ton /compte
+      \nTon profil affichera tes entrées publiques et des statistiques basiques
+      \nTon compte affichera lui toutes entrées et un moyen de télécharger tes données
+      \n\n*ℹ️ Besoin d'aide?*
+      \nEn espérant que cette introduction t'aidera, tu peux avoir plus d'informations et de ressources avec /help
+      \nBonne chance dans ton voyage !" # space -> emoji
 
 new-already-running-journey: "Tu as déjà un voyage en cours, arrête-le avec /check avant d'en créer un nouveau."
 new-ask-streak: "Entre le nombre de jour déjà effectués (ou /cancel pour annuler):"
