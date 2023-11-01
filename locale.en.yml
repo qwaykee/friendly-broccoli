@@ -61,7 +61,6 @@ profile-entries-private: "private"
 entries-no-account: "This account doesn't exist, try /fix if you want to see you own entries then retry the command"
 
 fix-text: "Successfully fixed"
-update-text: "Successfully updated"
 
 account-text: "*🏛️ My account*\n\nScore: %v\nRank: %v (%v in %v days)\nTotal: %v days\nAverage: %v days\n%v entries - %v tasks"
 account-activity: "My activity"
@@ -119,6 +118,12 @@ help-text: "*Commands*
       \n
       \n*About*
       \nMade by @qwaykee
-      \nBot's channel: t.me/
-      \nPersonal channel: t.me/
+      \nBot's channel: %v
+      \nPersonal channel: %v
       "
+
+admin-update: "Successfully updated"
+admin-change-ask-action: "What variable do you want to change? (`nofap-channel`, `personal-channel`, `add-owner`, `remove-owner`)"
+admin-change-ask-value: "Enter the value:"
+admin-change-success: "Successfully updated %v to %v"
+admin-change-failed: "Error while updating %v to %v (Key doesn't exist)"

@@ -26,16 +26,17 @@ FriendlyBroccolli golang
 [x] Task max 3/day
 [x] Change /motivations structs to db
 [x] Finir /account activity
+[x] Add resources to /help (easypeasymethod)
 [ ] README.md
 [ ] Add tasks to config.yml
 [ ] Add images to motivation/
 [ ] Remove /dummy
-[ ] Add resources to /help (easypeasymethod)
 [ ] /account download edit message instead of sending new one
 [ ] Add /update to update motivation folder
 [ ] Make markup
 [ ] Update config notes.md
 [ ] Make no check-in system
+[ ] Add custom language
 
 # Structure
 Commands:

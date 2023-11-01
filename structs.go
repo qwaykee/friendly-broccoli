@@ -6,16 +6,18 @@ import (
 )
 
 type Config struct {
-    Token          string
-    Timeout        int
-    SetCommands    bool
-    Database       string
-    MotivationPath string `yaml:"motivationPath"`
-    Owners         []int64
-    Commands       map[string]string
-    Ranks          map[string]Rank
-    Tasks          map[int]TaskData
-    Motivations    map[string]Motivation
+    Token           string
+    Timeout         int
+    SetCommands     bool
+    Database        string
+    MotivationPath  string `yaml:"motivationPath"`
+    Owners          []int64
+    NofapChannel    string `yaml:"nofapChannel"`
+    PersonalChannel string `yaml:"personalChannel"`
+    Commands        map[string]string
+    Ranks           map[string]Rank
+    Tasks           map[int]TaskData
+    Motivations     map[string]Motivation
 }
 
 type Rank struct {

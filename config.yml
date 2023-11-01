@@ -4,6 +4,8 @@ setCommands: False
 database: ':memory:'
 motivationPath: 'motivation'
 owners: [5041119277]
+nofapChannel: 't.me/nofapbotchannel'
+personalChannel: 't.me/qwaykeechannel'
 
 commands:
   start: 'Start the bot'

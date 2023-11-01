@@ -61,7 +61,6 @@ profile-entries-private: "Privées"
 entries-no-account: "Ce compte n'existe pas, essaies /fix si tu veux voir tes propres entrées puis réessaies la commande"
 
 fix-text: "Corrigé avec succès"
-update-text: "Mis à jour avec succès"
 
 account-text: "*🏛️ Mon compte*\n\nScore: %v\nGrade: %v (%v dans %v jours)\nTotal: %v jours\nMoyenne: %v jours\n%v pointages - %v tâches"
 account-activity: "Mon activité"
@@ -115,10 +114,16 @@ help-text: "*Commandes*
       \nNombre de messages: %v
       \nTemps de réponse moyen: %v
       \n(Inclus les temps de réponse des utilisateurs)
-      \nEn ligne depuis %v
+      \nEn ligne depuis le %v
       \n
       \n*À propos*
       \nFait par @qwaykee
-      \nCanal du bot: t.me/
-      \nCanal personel: t.me/
+      \nCanal du bot: %v
+      \nCanal personel: %v
       "
+
+admin-update: "Mis à jour avec succès"
+admin-change-ask: "Quelle variable voulez-vous changer? (`nofap-channel`, `personal-channel`, `add-owner`, `remove-owner`)"
+admin-change-ask-value: "Entrez la valeur:"
+admin-change-success: "Mis à jour avec succès %v à %v"
+admin-change-failed: "Erreur lors de la mis à jour de %v à %v (La clé n'existe pas)"

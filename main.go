@@ -156,7 +156,7 @@ func main() {
 
 			messageCount += 1
 			err := next(c)
-			
+
 			responseTime = append(responseTime, time.Now().Sub(start))
 
 			return err
@@ -472,7 +472,16 @@ func main() {
 
 		averageResponseTime := totalResponseTime / time.Duration(len(responseTime))
 
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "help-text", users, messageCount, averageResponseTime, start.Format("02 Jan 06 15:04")))
+		return c.Send(localizer.Tr(
+			c.Sender().LanguageCode,
+			"help-text",
+			users,
+			messageCount,
+			averageResponseTime,
+			start.Format("02 Jan 06 15:04"),
+			config.NofapChannel,
+			config.PersonalChannel,
+		))
 	})
 
 	b.Handle("/fix", func(c telebot.Context) error {
@@ -493,7 +502,61 @@ func main() {
 			return err
 		}
 
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "update-text"))
+		return c.Send(localizer.Tr(c.Sender().LanguageCode, "admin-update"))
+	})
+
+	admin.Handle("/change", func(c telebot.Context) error {
+		msg, action, err := i.Listen(cauliflower.Parameters{
+			Context: c,
+			Message: localizer.Tr(c.Sender().LanguageCode, "admin-change-ask-action"),
+		})
+		if err != nil {
+			return nil
+		}
+
+		msg, value, err := i.Listen(cauliflower.Parameters{
+			Context: c,
+			Message: localizer.Tr(c.Sender().LanguageCode, "admin-change-ask-value"),
+			Edit: msg,
+		})
+		if err != nil {
+			return nil
+		}
+
+		switch action.Text {
+		case "nofap-channel":
+			config.NofapChannel = value.Text
+
+		case "personal-channel":
+			config.PersonalChannel = value.Text
+
+		case "add-owner":
+			owner, err := strconv.ParseInt(value.Text, 10, 64)
+
+			if err != nil {
+				c.Send(err)
+				return err
+			}
+
+			config.Owners = append(config.Owners, owner)
+
+		case "remove-owner":
+			owner, err := strconv.ParseInt(value.Text, 10, 64)
+
+			if err != nil {
+				c.Send(err)
+				return err
+			}
+
+			removeSlice(config.Owners, owner)
+
+		default:
+			_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "admin-change-failed", action.Text, value.Text))
+			return err
+		}
+
+		_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "admin-change-success", action.Text, value.Text))
+		return err
 	})
 
 	admin.Handle("/add-task", func(c telebot.Context) error {
@@ -1069,4 +1132,13 @@ func removeDuplicate[T string | int](sliceList []T) []T {
         }
     }
     return list
+}
+
+func removeSlice[T comparable](l []T, item T) []T {
+    for i, other := range l {
+        if other == item {
+            return append(l[:i], l[i+1:]...)
+        }
+    }
+    return l
 }
