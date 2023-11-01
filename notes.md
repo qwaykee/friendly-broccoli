@@ -27,7 +27,6 @@ FriendlyBroccolli golang
 [x] Change /motivations structs to db
 [x] Finir /account activity
 [ ] README.md
-[ ] Remove db logger
 [ ] Add tasks to config.yml
 [ ] Add images to motivation/
 [ ] Remove /dummy
