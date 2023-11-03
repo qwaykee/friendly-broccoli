@@ -792,17 +792,17 @@ func markupNew(c telebot.Context) error {
 	)
 
 	// markup := &telebot.ReplyMarkup{ResizeKeyboard: true}
- 
+
 	// motivation := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-motivation"))
 	// account := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-account"))
 	// check := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-check"))
 	// task := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-task"))
- 
+
 	// b.Handle(&motivation, commandMotivation)
 	// b.Handle(&account, commandAccount)
 	// b.Handle(&check, commandCheck)
 	// b.Handle(&task, commandTask)
- 
+
 	// markup.Reply(
 	// 	markup.Row(motivation, account),
 	// 	markup.Row(check, task),
@@ -827,15 +827,15 @@ func markupCheckRelapsed(c telebot.Context) error {
 	})
 
 	// markup := &telebot.ReplyMarkup{ResizeKeyboard: true}
- 
+
 	// motivation := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-motivation"))
 	// account := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-account"))
 	// new := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-new"))
- 
+
 	// b.Handle(&motivation, commandMotivation)
 	// b.Handle(&account, commandAccount)
 	// b.Handle(&new, commandNew)
- 
+
 	// markup.Reply(
 	// 	markup.Row(motivation, account),
 	// 	markup.Row(new),
