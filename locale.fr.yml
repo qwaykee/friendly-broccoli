@@ -63,6 +63,7 @@ entries-no-account: "Ce compte n'existe pas, essaies /fix si tu veux voir tes pr
 fix-text: "Corrigé avec succès"
 
 account-text: "*🏛️ Mon compte*\n\nScore: %v\nGrade: %v (%v dans %v jours)\nTotal: %v jours\nMoyenne: %v jours\n%v pointages - %v tâches"
+account-text-no-journey: "*👤 Aucun voyage pour cet utilisateur*"
 account-activity: "Mon activité"
 account-entries: "Mes pointages"
 account-download: "Télécharger mes données"
@@ -82,6 +83,13 @@ account-activity-text: "*📍 Mon activité*\n
 pagination-next: "Suivant"
 pagination-previous: "Précedant"
 pagination-back: "Retour"
+
+markup-new: "Nouveau voyage"
+markup-check: "Pointer"
+markup-task: "Tâche"
+markup-motivation: "Motivation"
+markup-profile: "Profil"
+markup-account: "Compte"
 
 task-too-much: "Tu as déjà fini 3 tâches aujourd'hui! Reviens demain 🫡" # space -> emoji
 task-cta: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: Non fini\nClique sur le bouton quand tu as fini!"

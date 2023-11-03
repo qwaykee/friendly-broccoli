@@ -38,11 +38,12 @@ Get android device cpu architecture: adb shell getprop ro.product.cpu.abi
 [x] Add images to motivation/
 [x] Add /update to update motivation folder
 [x] Update config notes.md
+[-] Make reply keyboard markup (to uncomment -> work with .Edit())
 [ ] README.md
 [ ] Add tasks to config.yml
 [ ] /account download edit message instead of sending new one
-[ ] Make markup
 [ ] Add custom language
+[ ] Use layout.yml
 
 # Structure
 Commands:
@@ -65,6 +66,10 @@ Admin commands:
 - /dummy -> make dummy user for test purpose
 - /update -> update motivation table in database
 - /add-task -> create new task and save into db
+
+Reply markup:
+- /new -> check, task, motivation, account
+- /check relapsed -> new, motivation, account
 
 Motivation filename:
 - pack.packplace.category.languagecode.extension

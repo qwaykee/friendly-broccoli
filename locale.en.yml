@@ -63,6 +63,7 @@ entries-no-account: "This account doesn't exist, try /fix if you want to see you
 fix-text: "Successfully fixed"
 
 account-text: "*🏛️ My account*\n\nScore: %v\nRank: %v (%v in %v days)\nTotal: %v days\nAverage: %v days\n%v entries - %v tasks"
+account-text-no-journey: "*👤 No journey for this user*"
 account-activity: "My activity"
 account-entries: "My entries"
 account-download: "Download my data"
@@ -82,6 +83,13 @@ account-activity-text: "*📍 My activity*\n
 pagination-next: "Next"
 pagination-previous: "Previous"
 pagination-back: "Back"
+
+markup-new: "New journey"
+markup-check: "Check-in"
+markup-task: "Task"
+markup-motivation: "Motivation"
+markup-profile: "Profile"
+markup-account: "Account"
 
 task-too-much: "You already done 3 tasks today! Come back tomorrow 🫡" # space -> emoji
 task-cta: "*🎖️ Task: %v*\nGiven at: %v\nDone at: Not done\nClick on the button when you're done!"
