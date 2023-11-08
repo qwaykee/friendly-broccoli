@@ -44,6 +44,7 @@ Get android device cpu architecture: adb shell getprop ro.product.cpu.abi
 [ ] /account download edit message instead of sending new one
 [ ] Add custom language
 [ ] Use layout.yml
+[ ] Add motivation path to layout and update update()
 
 # Structure
 Commands:

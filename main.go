@@ -9,6 +9,7 @@ import (
 	"github.com/schollz/closestmatch"
 	"gopkg.in/telebot.v3"
 	"gopkg.in/telebot.v3/middleware"
+	"gopkg.in/telebot.v3/layout"
 	"gopkg.in/yaml.v3"
 
 	"bytes"
@@ -29,14 +30,16 @@ var (
 	config    Config
 	localizer *i18n.I18n
 	db        *gorm.DB
+	lt        *layout.Layout
 	b         *telebot.Bot
 	i         *cauliflower.Instance
 	cm        *closestmatch.ClosestMatch
 
 	messageCount          int
 	responseTime          []time.Duration
-	rankButtons           = []telebot.Btn{}
 	motivationsCategories = make(map[string]int)
+	notesMarkup           *telebot.ReplyMarkup
+	ranksMarkup           *telebot.ReplyMarkup
 	start                 time.Time
 
 	//go:embed locale.*.yml
@@ -48,6 +51,12 @@ var (
 
 func init() {
 	log.Println("initialization")
+
+	// load layout and config
+	lt, err := layout.New("bot.yml")
+	if err != nil {
+		log.Fatalf("layout: %v", err)
+	}
 
 	// load config
 	if err := yaml.Unmarshal(configFile, &config); err != nil {
@@ -66,7 +75,7 @@ func init() {
 	}
 
 	// initialize database
-	db, err = gorm.Open(sqlite.Open(config.Database), &gorm.Config{PrepareStmt: true})
+	db, err = gorm.Open(sqlite.Open(lt.String("database")), &gorm.Config{PrepareStmt: true})
 	if err != nil {
 		log.Fatalf("gorm: %v", err)
 	}
@@ -79,49 +88,63 @@ func init() {
 	}
 
 	// create bot and set commands
-	b, err = telebot.NewBot(telebot.Settings{
-		Token:     config.Token,
-		Poller:    &telebot.LongPoller{Timeout: time.Duration(config.Timeout) * time.Second},
-		ParseMode: telebot.ModeMarkdown,
-	})
+	b, err = telebot.NewBot(lt.Settings())
 	if err != nil {
 		log.Fatalf("telebot: %v", err)
 	}
 
-	if config.SetCommands {
-		var c []telebot.Command
-		for name, description := range config.Commands {
-			c = append(c, telebot.Command{
-				Text:        name,
-				Description: description,
-			})
-		}
-		if err := b.SetCommands(c); err != nil {
+	if lt.Bool("set_commands") {
+		if err := b.SetCommands(lt.Commands()); err != nil {
 			log.Fatalf("telebot: %v", err)
 		}
 	}
 
 	// initialize cauliflower
-	i, err = cauliflower.NewInstance(cauliflower.Settings{
+	i, err = cauliflower.NewInstance(&cauliflower.Settings{
 		Bot:    b,
-		Cancel: "/cancel",
-		TimeoutHandler: func(c telebot.Context) error {
-			return c.Send(localizer.Tr(c.Sender().LanguageCode, "err-no-message-received"))
-		},
-		CancelHandler: func(c telebot.Context) error {
-			return c.Send(localizer.Tr(c.Sender().LanguageCode, "err-command-canceled"))
-		},
 		InstallMiddleware: true,
+		DefaultListen: &cauliflower.ListenOptions{
+			Cancel: "/cancel",
+			TimeoutHandler: func(c telebot.Context) error {
+				return c.Send(localizer.Tr(c.Sender().LanguageCode, "err-no-message-received"))
+			},
+			CancelHandler: func(c telebot.Context) error {
+				return c.Send(localizer.Tr(c.Sender().LanguageCode, "err-command-canceled"))
+			},
+		},
 	})
 	if err != nil {
 		log.Fatalf("cauliflower: %v", err)
+	}
+
+	notesMarkup, err = i.Keyboard(&cauliflower.KeyboardOptions{
+		Keyboard: cauliflower.Inline,
+		Row: []string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"},
+		Split: 5,
+		Handler: markupCheckSurvivedNote,
+	})
+	if err != nil {
+		log.Fatalf("keyboard: %v", err)
+	}
+
+	data := make([]string, len(config.Ranks))
+	for _, rank := range config.Ranks {data = append(data, rank.Name)}
+
+	ranksMarkup, err = i.Keyboard(&cauliflower.KeyboardOptions{
+		Keyboard: cauliflower.Inline,
+		Row: data,
+		Split: 2,
+		Handler: markupNew,
+	})
+	if err != nil {
+		log.Fatalf("keyboard: %v", err)
 	}
 
 	start = time.Now()
 }
 
 func main() {
-	// handle message count
+	// handle message count and response time
 	b.Use(func(next telebot.HandlerFunc) telebot.HandlerFunc {
 		return func(c telebot.Context) error {
 			start := time.Now()
@@ -159,7 +182,7 @@ func main() {
 	})
 
 	admin.Handle("/change", func(c telebot.Context) error {
-		msg, action, err := i.Listen(cauliflower.Parameters{
+		msg, action, err := i.Listen(&cauliflower.ListenOptions{
 			Context: c,
 			Message: localizer.Tr(c.Sender().LanguageCode, "admin-change-ask-action"),
 		})
@@ -167,7 +190,7 @@ func main() {
 			return nil
 		}
 
-		msg, value, err := i.Listen(cauliflower.Parameters{
+		msg, value, err := i.Listen(&cauliflower.ListenOptions{
 			Context: c,
 			Message: localizer.Tr(c.Sender().LanguageCode, "admin-change-ask-value"),
 			Edit:    msg,
@@ -217,7 +240,7 @@ func main() {
 	})
 
 	admin.Handle("/send", func(c telebot.Context) error {
-		msg, answer, err := i.Listen(cauliflower.Parameters{
+		msg, answer, err := i.Listen(&cauliflower.ListenOptions{
 			Context: c,
 			Message: "Enter the message to send",
 		})
@@ -467,7 +490,7 @@ func commandNew(c telebot.Context) error {
 		return c.Send(localizer.Tr(c.Sender().LanguageCode, "new-already-running-journey"))
 	}
 
-	msg, answer, err := i.Listen(cauliflower.Parameters{
+	msg, answer, err := i.Listen(&cauliflower.ListenOptions{
 		Context: c,
 		Message: localizer.Tr(c.Sender().LanguageCode, "new-ask-streak"),
 	})
@@ -489,20 +512,7 @@ func commandNew(c telebot.Context) error {
 		Start:        start,
 	})
 
-	markup := b.NewMarkup()
-
-	var buttons []telebot.Btn
-
-	for _, rank := range config.Ranks {
-		button := markup.Data(rank.Name, randomString(16), rank.Name)
-		buttons = append(buttons, button)
-
-		b.Handle(&button, markupNew)
-	}
-
-	markup.Inline(markup.Split(2, buttons)...)
-
-	_, err = b.Edit(msg, text, markup)
+	_, err = b.Edit(msg, text, ranksMarkup)
 	return err
 }
 
@@ -812,7 +822,7 @@ func markupNew(c telebot.Context) error {
 }
 
 func markupCheckRelapsed(c telebot.Context) error {
-	msg, answer, err := i.Listen(cauliflower.Parameters{
+	msg, answer, err := i.Listen(&cauliflower.ListenOptions{
 		Context: c,
 		Message: localizer.Tr(c.Sender().LanguageCode, "relapsed"),
 		Edit:    c.Message(),
@@ -846,22 +856,7 @@ func markupCheckRelapsed(c telebot.Context) error {
 }
 
 func markupCheckSurvived(c telebot.Context) error {
-	markup := b.NewMarkup()
-
-	var buttons []telebot.Btn
-
-	for n := 1; n < 11; n++ {
-		text := strconv.Itoa(n)
-		button := markup.Data(text, randomString(16), text)
-
-		b.Handle(&button, markupCheckSurvivedNote)
-
-		buttons = append(buttons, button)
-	}
-
-	markup.Inline(markup.Split(5, buttons)...)
-
-	return c.Edit(localizer.Tr(c.Sender().LanguageCode, "survived-ask-note"), markup)
+	return c.Edit(localizer.Tr(c.Sender().LanguageCode, "survived-ask-note"), notesMarkup)
 }
 
 func markupCheckSurvivedNote(c telebot.Context) error {
@@ -872,7 +867,7 @@ func markupCheckSurvivedNote(c telebot.Context) error {
 		return err
 	}
 
-	msg, answer, err := i.Listen(cauliflower.Parameters{
+	msg, answer, err := i.Listen(&cauliflower.ListenOptions{
 		Context: c,
 		Message: localizer.Tr(c.Sender().LanguageCode, "survived-ask-entry"),
 		Edit:    c.Message(),
@@ -1023,7 +1018,7 @@ func update() error {
 	var motivations []Motivation
 	var matches []string
 
-	if err := filepath.Walk(config.MotivationPath, func(path string, file fs.FileInfo, err error) error {
+	if err := filepath.Walk("motivation", func(path string, file fs.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
