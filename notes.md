@@ -39,10 +39,10 @@ Get android device cpu architecture: adb shell getprop ro.product.cpu.abi
 [x] Add /update to update motivation folder
 [x] Update config notes.md
 [-] Make reply keyboard markup (to uncomment -> work with .Edit())
-[ ] README.md
 [-] Add tasks to config.yml
-[ ] Move tasks to db
 [-] /account download edit message instead of sending new one
+[ ] README.md
+[ ] Move tasks to db
 [ ] Add custom language
 [ ] Use layout.yml
 [ ] Add motivation path to layout and update update()

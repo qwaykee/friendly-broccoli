@@ -40,6 +40,7 @@ var (
 	motivationsCategories = make(map[string]int)
 	notesMarkup           *telebot.ReplyMarkup
 	ranksMarkup           *telebot.ReplyMarkup
+	afterNewMarkup        *telebot.ReplyMarkup
 	start                 time.Time
 
 	//go:embed locale.*.yml
@@ -801,24 +802,24 @@ func markupNew(c telebot.Context) error {
 		int(time.Now().Sub(j.Start).Hours()/24),
 	)
 
-	// markup := &telebot.ReplyMarkup{ResizeKeyboard: true}
+	afterNewMarkup := &telebot.ReplyMarkup{ResizeKeyboard: true}
 
-	// motivation := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-motivation"))
-	// account := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-account"))
-	// check := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-check"))
-	// task := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-task"))
+	motivation := afterNewMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-motivation"))
+	account := afterNewMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-account"))
+	check := afterNewMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-check"))
+	task := afterNewMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-task"))
 
-	// b.Handle(&motivation, commandMotivation)
-	// b.Handle(&account, commandAccount)
-	// b.Handle(&check, commandCheck)
-	// b.Handle(&task, commandTask)
+	b.Handle(&motivation, commandMotivation)
+	b.Handle(&account, commandAccount)
+	b.Handle(&check, commandCheck)
+	b.Handle(&task, commandTask)
 
-	// markup.Reply(
-	// 	markup.Row(motivation, account),
-	// 	markup.Row(check, task),
-	// )
+	afterNewMarkup.Reply(
+		afterNewMarkup.Row(motivation, account),
+		afterNewMarkup.Row(check, task),
+	)
 
-	return c.Edit(text)
+	return c.Edit(text, afterNewMarkup)
 }
 
 func markupCheckRelapsed(c telebot.Context) error {
@@ -836,22 +837,22 @@ func markupCheckRelapsed(c telebot.Context) error {
 		Text: answer.Text,
 	})
 
-	// markup := &telebot.ReplyMarkup{ResizeKeyboard: true}
+	afterRelapseMarkup := &telebot.ReplyMarkup{ResizeKeyboard: true}
 
-	// motivation := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-motivation"))
-	// account := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-account"))
-	// new := markup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-new"))
+	motivation := afterRelapseMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-motivation"))
+	account := afterRelapseMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-account"))
+	new := afterRelapseMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-new"))
 
-	// b.Handle(&motivation, commandMotivation)
-	// b.Handle(&account, commandAccount)
-	// b.Handle(&new, commandNew)
+	b.Handle(&motivation, commandMotivation)
+	b.Handle(&account, commandAccount)
+	b.Handle(&new, commandNew)
 
-	// markup.Reply(
-	// 	markup.Row(motivation, account),
-	// 	markup.Row(new),
-	// )
+	afterRelapseMarkup.Reply(
+		afterRelapseMarkup.Row(motivation, account),
+		afterRelapseMarkup.Row(new),
+	)
 
-	_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "relapsed-saved"))
+	_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "relapsed-saved"), afterRelapseMarkup)
 	return err
 }
 
