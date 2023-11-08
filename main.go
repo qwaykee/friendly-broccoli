@@ -40,7 +40,6 @@ var (
 	motivationsCategories = make(map[string]int)
 	notesMarkup           *telebot.ReplyMarkup
 	ranksMarkup           *telebot.ReplyMarkup
-	afterNewMarkup        *telebot.ReplyMarkup
 	start                 time.Time
 
 	//go:embed locale.*.yml
@@ -158,6 +157,8 @@ func main() {
 			return err
 		}
 	})
+
+	b.Use(middleware.AutoRespond())
 
 	b.Handle("/start", commandStart)
 	b.Handle("/new", commandNew)
@@ -802,24 +803,7 @@ func markupNew(c telebot.Context) error {
 		int(time.Now().Sub(j.Start).Hours()/24),
 	)
 
-	afterNewMarkup := &telebot.ReplyMarkup{ResizeKeyboard: true}
-
-	motivation := afterNewMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-motivation"))
-	account := afterNewMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-account"))
-	check := afterNewMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-check"))
-	task := afterNewMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-task"))
-
-	b.Handle(&motivation, commandMotivation)
-	b.Handle(&account, commandAccount)
-	b.Handle(&check, commandCheck)
-	b.Handle(&task, commandTask)
-
-	afterNewMarkup.Reply(
-		afterNewMarkup.Row(motivation, account),
-		afterNewMarkup.Row(check, task),
-	)
-
-	return c.Edit(text, afterNewMarkup)
+	return c.Edit(text)
 }
 
 func markupCheckRelapsed(c telebot.Context) error {
@@ -837,22 +821,7 @@ func markupCheckRelapsed(c telebot.Context) error {
 		Text: answer.Text,
 	})
 
-	afterRelapseMarkup := &telebot.ReplyMarkup{ResizeKeyboard: true}
-
-	motivation := afterRelapseMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-motivation"))
-	account := afterRelapseMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-account"))
-	new := afterRelapseMarkup.Text(localizer.Tr(c.Sender().LanguageCode, "markup-new"))
-
-	b.Handle(&motivation, commandMotivation)
-	b.Handle(&account, commandAccount)
-	b.Handle(&new, commandNew)
-
-	afterRelapseMarkup.Reply(
-		afterRelapseMarkup.Row(motivation, account),
-		afterRelapseMarkup.Row(new),
-	)
-
-	_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "relapsed-saved"), afterRelapseMarkup)
+	_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "relapsed-saved"))
 	return err
 }
 
