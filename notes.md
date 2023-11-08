@@ -40,11 +40,13 @@ Get android device cpu architecture: adb shell getprop ro.product.cpu.abi
 [x] Update config notes.md
 [-] Make reply keyboard markup (to uncomment -> work with .Edit())
 [ ] README.md
-[ ] Add tasks to config.yml
-[ ] /account download edit message instead of sending new one
+[-] Add tasks to config.yml
+[ ] Move tasks to db
+[-] /account download edit message instead of sending new one
 [ ] Add custom language
 [ ] Use layout.yml
 [ ] Add motivation path to layout and update update()
+[ ] Add locales logic
 
 # Structure
 Commands:
@@ -113,29 +115,3 @@ Task:
 - Journey id (foreign key) - int
 - Date (autodate) - time.Time
 - Task id
-
-# Metadata
-
-Commands:
-start - Start the bot
-new - Start a new journey
-check - Check-in for your current journey
-motivation - Send a motivational media
-task - Send a task to achieve
-ranks - List the ranks systems
-profile - See your public profile
-account - See your private informations and settings
-help - See commands help, statistics and bot channel
-fix - Fix missing user
-
-What can this bot do?
-🔞 Hello! I'm FriendlyBrocolli, your nofap companion.
-Hopefully, I will help you reach your goals!
-I have many commands that can motivate you, keep track of your days etc.
-You can use me to help you fight porn addiction or simply any addiction.
-I can also hold you company during this journey.
-Important note: This bot is still in beta and might not always be online
-Join the channel to get updates on the dev: https://t.me/nofapbotchannel
-
-About:
-Your nofap companion that will help you towards your goals
