@@ -4,7 +4,6 @@ import (
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 
-	"github.com/kataras/i18n"
 	"github.com/qwaykee/cauliflower"
 	"github.com/schollz/closestmatch"
 	"gopkg.in/telebot.v3"
@@ -13,7 +12,7 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"bytes"
-	"embed"
+	_ "embed"
 	"errors"
 	"golang.org/x/exp/maps"
 	"io/fs"
@@ -28,7 +27,6 @@ import (
 
 var (
 	config    Config
-	localizer *i18n.I18n
 	db        *gorm.DB
 	lt        *layout.Layout
 	b         *telebot.Bot
@@ -41,19 +39,18 @@ var (
 	notesMarkup           *telebot.ReplyMarkup
 	ranksMarkup           *telebot.ReplyMarkup
 	start                 time.Time
-
-	//go:embed locale.*.yml
-	localesFS embed.FS
+	usersLanguage 		  = make(map[int64]string)
 
 	//go:embed config.yml
 	configFile []byte
 )
 
 func init() {
+	var err error
 	log.Println("initialization")
 
 	// load layout and config
-	lt, err := layout.New("bot.yml")
+	lt, err = layout.New("bot.yml")
 	if err != nil {
 		log.Fatalf("layout: %v", err)
 	}
@@ -61,17 +58,6 @@ func init() {
 	// load config
 	if err := yaml.Unmarshal(configFile, &config); err != nil {
 		log.Fatal(err)
-	}
-
-	// initialize i18n
-	loader, err := i18n.FS(localesFS, "locale.*.yml")
-	if err != nil {
-		log.Fatalf("loader: %v", err)
-	}
-
-	localizer, err = i18n.New(loader, "en-US", "fr-FR")
-	if err != nil {
-		log.Fatalf("localizer: %v", err)
 	}
 
 	// initialize database
@@ -106,10 +92,10 @@ func init() {
 		DefaultListen: &cauliflower.ListenOptions{
 			Cancel: "/cancel",
 			TimeoutHandler: func(c telebot.Context) error {
-				return c.Send(localizer.Tr(c.Sender().LanguageCode, "err-no-message-received"))
+				return c.Send(lt.Text(c, "err-no-message-received"))
 			},
 			CancelHandler: func(c telebot.Context) error {
-				return c.Send(localizer.Tr(c.Sender().LanguageCode, "err-command-canceled"))
+				return c.Send(lt.Text(c, "err-command-canceled"))
 			},
 		},
 	})
@@ -150,13 +136,31 @@ func main() {
 			start := time.Now()
 
 			messageCount += 1
-			err := next(c)
 
+			if _, ok := usersLanguage[c.Chat().ID]; !ok {
+				usersLanguage[c.Chat().ID] = c.Sender().LanguageCode
+			}
+
+			err := next(c)
+			
 			responseTime = append(responseTime, time.Now().Sub(start))
 
 			return err
 		}
 	})
+
+	b.Use(lt.Middleware("fr", func(r telebot.Recipient) string {
+		userID, err := strconv.ParseInt(r.Recipient(), 10, 64)
+		if err != nil {
+			log.Printf("i18n middleware strconv: %v", err)
+		}
+
+		if lang, ok := usersLanguage[userID]; ok {
+			return lang
+		}
+
+		return "fr"
+	}))
 
 	b.Use(middleware.AutoRespond())
 
@@ -180,13 +184,13 @@ func main() {
 			return err
 		}
 
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "admin-update"))
+		return c.Send(lt.Text(c, "admin-update"))
 	})
 
 	admin.Handle("/change", func(c telebot.Context) error {
 		msg, action, err := i.Listen(&cauliflower.ListenOptions{
 			Context: c,
-			Message: localizer.Tr(c.Sender().LanguageCode, "admin-change-ask-action"),
+			Message: lt.Text(c, "admin-change-ask-action"),
 		})
 		if err != nil {
 			return nil
@@ -194,7 +198,7 @@ func main() {
 
 		msg, value, err := i.Listen(&cauliflower.ListenOptions{
 			Context: c,
-			Message: localizer.Tr(c.Sender().LanguageCode, "admin-change-ask-value"),
+			Message: lt.Text(c, "admin-change-ask-value"),
 			Edit:    msg,
 		})
 		if err != nil {
@@ -229,11 +233,17 @@ func main() {
 			removeSlice(config.Owners, owner)
 
 		default:
-			_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "admin-change-failed", action.Text, value.Text))
+			_, err = b.Edit(msg, lt.Text(c, "admin-change-failed", map[string]any{
+				"Action": action.Text,
+				"Value": value.Text,
+			}))
 			return err
 		}
 
-		_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "admin-change-success", action.Text, value.Text))
+		_, err = b.Edit(msg, lt.Text(c, "admin-change-success", map[string]any{
+			"Action": action.Text,
+			"Value": value.Text,
+		}))
 		return err
 	})
 
@@ -304,7 +314,7 @@ func profile(c telebot.Context, user User) error {
 	var j Journey
 	if r := db.First(&j, "user_id = ?", user.ID); errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		// user doesn't have journeys
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "profile-text-no-journey"))
+		return c.Send(lt.Text(c, "profile-text-no-journey"))
 	}
 
 	var translationKey string
@@ -314,7 +324,7 @@ func profile(c telebot.Context, user User) error {
 		translationKey = "profile-last-journey"
 	}
 
-	journeyIsCurrent := localizer.Tr(c.Sender().LanguageCode, translationKey)
+	journeyIsCurrent := lt.Text(c, translationKey)
 
 	var a []Journey
 	db.Select("start").Find(&a, &Journey{
@@ -345,29 +355,28 @@ func profile(c telebot.Context, user User) error {
 	days := int(time.Now().Sub(j.Start).Hours() / 24)
 	totalScore, currentScore := calculateScore(user.ID, true), calculateScore(user.ID, false)
 
-	text := localizer.Tr(c.Sender().LanguageCode,
-		"profile-text",
-		user.Username, // current/last journey
-		totalScore,
-		journeyIsCurrent,
-		currentScore,
-		j.Start.Format("02 Jan 06"),
-		days,
-		currentRank,
-		nextRank,
-		daysLeft,
-		entriesCount,
-		tasksCount,
-		len(a), // all journeys
-		averageDays,
-		totalDays,
-		totalEntriesCount,
-		totalTasksCount,
-	)
+	text := lt.Text(c, "profile-text", map[string]any{
+		"Username": user.Username, // current/last journey
+		"TotalScore": totalScore,
+		"JourneyIsCurrent": journeyIsCurrent,
+		"CurrentScore": currentScore,
+		"Start": j.Start.Format("02 Jan 06"),
+		"Days": days,
+		"CurrentRank": currentRank,
+		"NextRank": nextRank,
+		"DaysLeft": daysLeft,
+		"EntriesCount": entriesCount,
+		"TasksCount": tasksCount,
+		"JourneysCount": len(a), // all journeys
+		"AverageDays": averageDays,
+		"TotalDays": totalDays,
+		"TotalEntriesCount": totalEntriesCount,
+		"TotalTasksCount": totalTasksCount,
+	})
 
 	markup := b.NewMarkup()
 
-	button := markup.Data(localizer.Tr(c.Sender().LanguageCode, "profile-button", user.Username), randomString(16), strconv.FormatInt(user.ID, 10), "1")
+	button := markup.Data(lt.Text(c, "profile-button", user), randomString(16), strconv.FormatInt(user.ID, 10), "1")
 
 	b.Handle(&button, func(c telebot.Context) error {
 		return profileEntries(c, "public", func(c telebot.Context) error {
@@ -392,12 +401,12 @@ func profileEntries(c telebot.Context, privacy string, backHandler func(c telebo
 
 	var user User
 	if r := db.First(&user, data[0]); errors.Is(r.Error, gorm.ErrRecordNotFound) {
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "entries-no-account"))
+		return c.Send(lt.Text(c, "entries-no-account"))
 	}
 
 	page, err := strconv.Atoi(data[1])
 	if err != nil {
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "err-button"))
+		return c.Send(lt.Text(c, "err-button"))
 	}
 
 	var count int64
@@ -408,20 +417,20 @@ func profileEntries(c telebot.Context, privacy string, backHandler func(c telebo
 	case "all":
 		db.Model(&Entry{UserID: user.ID}).Count(&count)
 		db.Limit(10).Offset((page-1)*10).Find(&entries, Entry{UserID: user.ID})
-		textPrivacy = localizer.Tr(c.Sender().LanguageCode, "profile-entries-all")
+		textPrivacy = lt.Text(c, "profile-entries-all")
 	case "public":
 		db.Model(&Entry{UserID: user.ID, IsPublic: true}).Count(&count)
 		db.Limit(10).Offset((page-1)*10).Find(&entries, Entry{UserID: user.ID, IsPublic: true})
-		textPrivacy = localizer.Tr(c.Sender().LanguageCode, "profile-entries-public")
+		textPrivacy = lt.Text(c, "profile-entries-public")
 	case "private":
 		db.Model(&Entry{UserID: user.ID, IsPublic: false}).Count(&count)
 		db.Limit(10).Offset((page-1)*10).Find(&entries, Entry{UserID: user.ID, IsPublic: false})
-		textPrivacy = localizer.Tr(c.Sender().LanguageCode, "profile-entries-private")
+		textPrivacy = lt.Text(c, "profile-entries-private")
 	default:
 		return errors.New("error with profileEntries privacy")
 	}
 
-	text := localizer.Tr(c.Sender().LanguageCode, "profile-entries", map[string]interface{}{
+	text := lt.Text(c, "profile-entries", map[string]interface{}{
 		"User":    user.Username,
 		"Page":    page,
 		"MaxPage": count/10 + 1,
@@ -434,14 +443,14 @@ func profileEntries(c telebot.Context, privacy string, backHandler func(c telebo
 	var previous, next telebot.Btn
 
 	if page > 1 {
-		previous = markup.Data(localizer.Tr(c.Sender().LanguageCode, "pagination-previous"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page-1))
+		previous = markup.Data(lt.Text(c, "pagination-previous"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page-1))
 	}
 
 	if int(count/10) > page {
-		next = markup.Data(localizer.Tr(c.Sender().LanguageCode, "pagination-next"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page+1))
+		next = markup.Data(lt.Text(c, "pagination-next"), randomString(16), strconv.FormatInt(user.ID, 10), strconv.Itoa(page+1))
 	}
 
-	back := markup.Data(localizer.Tr(c.Sender().LanguageCode, "pagination-back"), randomString(16), strconv.FormatInt(user.ID, 10))
+	back := markup.Data(lt.Text(c, "pagination-back"), randomString(16), strconv.FormatInt(user.ID, 10))
 
 	markup.Inline(markup.Row(previous, next, back))
 
@@ -482,19 +491,19 @@ func commandStart(c telebot.Context) error {
 		Username: c.Sender().Username,
 	})
 
-	return c.Send(localizer.Tr(c.Sender().LanguageCode, "start-hello"))
+	return c.Send(lt.Text(c, "start-hello"))
 }
 
 func commandNew(c telebot.Context) error {
 	var found bool
 	db.Raw("SELECT EXISTS(SELECT 1 FROM journeys WHERE user_id = ? AND end = ?) AS found", c.Sender().ID, time.Time{}).Scan(&found)
 	if found {
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "new-already-running-journey"))
+		return c.Send(lt.Text(c, "new-already-running-journey"))
 	}
 
 	msg, answer, err := i.Listen(&cauliflower.ListenOptions{
 		Context: c,
-		Message: localizer.Tr(c.Sender().LanguageCode, "new-ask-streak"),
+		Message: lt.Text(c, "new-ask-streak"),
 	})
 	if err != nil {
 		return nil
@@ -502,11 +511,13 @@ func commandNew(c telebot.Context) error {
 
 	days, err := strconv.Atoi(answer.Text)
 	if err != nil {
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "new-not-a-number"))
+		return c.Send(lt.Text(c, "new-not-a-number"))
 	}
 
 	start := time.Now().Add(-time.Duration(days) * time.Hour * 24)
-	text := localizer.Tr(c.Sender().LanguageCode, "new-ask-rank", start.Format("02 Jan 06"))
+	text := lt.Text(c, "new-ask-rank", map[string]any{
+		"Start": start.Format("02 Jan 06"),
+	})
 
 	db.Create(&Journey{
 		CreatedAtStr: time.Now().Format("02 Jan 06 15:04"),
@@ -522,7 +533,7 @@ func commandCheck(c telebot.Context) error {
 	var found bool
 	db.Raw("SELECT EXISTS(SELECT 1 FROM journeys WHERE user_id = ? AND end = ?) AS found", c.Sender().ID, time.Time{}).Scan(&found)
 	if !found {
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-no-journey"))
+		return c.Send(lt.Text(c, "check-no-journey"))
 	}
 
 	now, midnight := today()
@@ -530,20 +541,20 @@ func commandCheck(c telebot.Context) error {
 	var count int64
 	db.Model(&Entry{}).Where("created_at BETWEEN ? AND ?", midnight, now).Count(&count)
 	if int(count) >= 3 {
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-already-checked-in"))
+		return c.Send(lt.Text(c, "check-already-checked-in"))
 	}
 
 	markup := b.NewMarkup()
 
-	relapsed := markup.Data(localizer.Tr(c.Sender().LanguageCode, "check-button-relapsed"), "relapsed")
-	survived := markup.Data(localizer.Tr(c.Sender().LanguageCode, "check-button-survived"), "survived")
+	relapsed := markup.Data(lt.Text(c, "check-button-relapsed"), "relapsed")
+	survived := markup.Data(lt.Text(c, "check-button-survived"), "survived")
 
 	b.Handle(&relapsed, markupCheckRelapsed)
 	b.Handle(&survived, markupCheckSurvived)
 
 	markup.Inline(markup.Row(relapsed, survived))
 
-	return c.Send(localizer.Tr(c.Sender().LanguageCode, "check-ask-relapsed"), markup)
+	return c.Send(lt.Text(c, "check-ask-relapsed"), markup)
 }
 
 func commandTask(c telebot.Context) error {
@@ -552,7 +563,7 @@ func commandTask(c telebot.Context) error {
 	var count int64
 	db.Model(&Task{}).Where("user_id = ? AND updated_at BETWEEN ? AND ?", c.Sender().ID, now, midnight).Count(&count)
 	if int(count) >= 3 {
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "task-too-much"))
+		return c.Send(lt.Text(c, "task-too-much"))
 	}
 
 	var task Task
@@ -568,18 +579,21 @@ func commandTask(c telebot.Context) error {
 			Chat: chat,
 		}
 
-		_, err = b.Reply(&msg, localizer.Tr(c.Sender().LanguageCode, "task-unfinished"))
+		_, err = b.Reply(&msg, lt.Text(c, "task-unfinished"))
 		return err
 	}
 
 	taskID := rand.Intn(len(config.Tasks))
-	taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[taskID].Task)
+	taskText := lt.Text(c, config.Tasks[taskID].Task)
 
-	text := localizer.Tr(c.Sender().LanguageCode, "task-cta", taskText, time.Now().Format("02 Jan 06 15:04"))
+	text := lt.Text(c, "task-cta",map[string]any{
+		"Task": taskText,
+		"Now": time.Now().Format("02 Jan 06 15:04"),
+	})
 
 	markup := b.NewMarkup()
 
-	button := markup.Data(localizer.Tr(c.Sender().LanguageCode, "task-button"), randomString(16))
+	button := markup.Data(lt.Text(c, "task-button"), randomString(16))
 
 	b.Handle(&button, markupTaskDone)
 
@@ -613,14 +627,14 @@ func commandMotivation(c telebot.Context) error {
 
 		return c.Send(&telebot.Photo{
 			File:    telebot.FromDisk(m.Path),
-			Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
+			Caption: lt.Text(c, "motivation-caption", m),
 		})
 	}
 
 	arg := c.Args()[0]
 
 	if arg == "list" {
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-list", motivationsCategories))
+		return c.Send(lt.Text(c, "motivation-list", motivationsCategories))
 	}
 
 	c.Notify(telebot.UploadingPhoto)
@@ -628,7 +642,7 @@ func commandMotivation(c telebot.Context) error {
 	var m Motivation
 
 	if r := db.Where("pack = ? OR id = ? OR category = ?", arg, arg, arg).Order("RANDOM()").Take(&m); r.RowsAffected == 0 {
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-error", cm.Closest(arg)))
+		return c.Send(lt.Text(c, "motivation-error", cm.Closest(arg)))
 	}
 
 	if m.Pack != "" {
@@ -637,7 +651,7 @@ func commandMotivation(c telebot.Context) error {
 
 	return c.Send(&telebot.Photo{
 		File:    telebot.FromDisk(m.Path),
-		Caption: localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.ID, m.Category, m.Language),
+		Caption: lt.Text(c, "motivation-caption", m),
 	})
 }
 
@@ -649,7 +663,7 @@ func commandProfile(c telebot.Context) error {
 
 		if r := db.Last(&user, "username = ?", username); errors.Is(r.Error, gorm.ErrRecordNotFound) {
 			// user doesn't exist
-			return c.Send(localizer.Tr(c.Sender().LanguageCode, "profile-text-no-journey"))
+			return c.Send(lt.Text(c, "profile-text-no-journey"))
 		}
 	} else {
 		user.ID, user.Username = c.Sender().ID, c.Sender().Username
@@ -664,7 +678,7 @@ func commandAccount(c telebot.Context) error {
 	var j Journey
 	if r := db.First(&j, "user_id = ?", c.Sender().ID); errors.Is(r.Error, gorm.ErrRecordNotFound) {
 		// user doesn't have journeys
-		return c.Send(localizer.Tr(c.Sender().LanguageCode, "account-text-no-journey"))
+		return c.Send(lt.Text(c, "account-text-no-journey"))
 	}
 
 	var a []Journey
@@ -690,24 +704,22 @@ func commandAccount(c telebot.Context) error {
 	_, currentRank := getRank(j.Start, j.RankSystem, 0)
 	daysLeft, nextRank := getRank(j.Start, j.RankSystem, 1)
 
-	text = localizer.Tr(
-		c.Sender().LanguageCode,
-		"account-text",
-		calculateScore(c.Sender().ID, true),
-		currentRank,
-		nextRank,
-		daysLeft,
-		totalDays,
-		averageDays,
-		entriesCount,
-		tasksCount,
-	)
+	text = lt.Text(c, "account-text", map[string]any{
+		"Score": calculateScore(c.Sender().ID, true),
+		"CurrentRank": currentRank,
+		"NextRank": nextRank,
+		"DaysLeft": daysLeft,
+		"TotalDays": totalDays,
+		"AverageDays": averageDays,
+		"EntriesCount": entriesCount,
+		"TasksCount": tasksCount,
+	})
 
 	markup := b.NewMarkup()
 
-	activity := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-activity"), randomString(16))
-	entries := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-entries"), randomString(16), strconv.FormatInt(c.Sender().ID, 10), "1")
-	download := markup.Data(localizer.Tr(c.Sender().LanguageCode, "account-download"), randomString(16))
+	activity := markup.Data(lt.Text(c, "account-activity"), randomString(16))
+	entries := markup.Data(lt.Text(c, "account-entries"), randomString(16), strconv.FormatInt(c.Sender().ID, 10), "1")
+	download := markup.Data(lt.Text(c, "account-download"), randomString(16))
 
 	b.Handle(&activity, markupAccountActivity)
 	b.Handle(&download, markupAccountDownload)
@@ -766,16 +778,14 @@ func commandHelp(c telebot.Context) error {
 
 	averageResponseTime := totalResponseTime / time.Duration(len(responseTime))
 
-	return c.Send(localizer.Tr(
-		c.Sender().LanguageCode,
-		"help-text",
-		users,
-		messageCount,
-		averageResponseTime,
-		start.Format("02 Jan 06 15:04"),
-		config.NofapChannel,
-		config.PersonalChannel,
-	))
+	return c.Send(lt.Text(c, "help-text", map[string]any{
+		"UsersCount": users,
+		"MessageCount": messageCount,
+		"AverageResponseTime": averageResponseTime,
+		"Uptime": start.Format("02 Jan 06 15:04"),
+		"NofapChannel": config.NofapChannel,
+		"PersonalChannel": config.PersonalChannel,
+	}))
 }
 
 func commandFix(c telebot.Context) error {
@@ -784,7 +794,7 @@ func commandFix(c telebot.Context) error {
 		Username: c.Sender().Username,
 	})
 
-	return c.Send(localizer.Tr(c.Sender().LanguageCode, "fix-text"))
+	return c.Send(lt.Text(c, "fix-text"))
 }
 
 func markupNew(c telebot.Context) error {
@@ -794,14 +804,19 @@ func markupNew(c telebot.Context) error {
 
 	_, rank := getRank(j.Start, j.RankSystem, 0)
 
-	text := localizer.Tr(
-		c.Sender().LanguageCode,
-		"new-saved",
-		rank,
-		j.RankSystem,
-		j.Start.Format("02 Jan 06"),
-		int(time.Now().Sub(j.Start).Hours()/24),
-	)
+	log.Println(lt.Text(c, "new-saved", map[string]any{
+		"Rank": rank,
+		"RankSystem": j.RankSystem,
+		"Start": j.Start.Format("02 Jan 06"),
+		"Days": int(time.Now().Sub(j.Start).Hours()/24),
+	}))
+
+	text := lt.Text(c, "new-saved", map[string]any{
+		"Rank": rank,
+		"RankSystem": j.RankSystem,
+		"Start": j.Start.Format("02 Jan 06"),
+		"Days": int(time.Now().Sub(j.Start).Hours()/24),
+	})
 
 	return c.Edit(text)
 }
@@ -809,7 +824,7 @@ func markupNew(c telebot.Context) error {
 func markupCheckRelapsed(c telebot.Context) error {
 	msg, answer, err := i.Listen(&cauliflower.ListenOptions{
 		Context: c,
-		Message: localizer.Tr(c.Sender().LanguageCode, "relapsed"),
+		Message: lt.Text(c, "relapsed"),
 		Edit:    c.Message(),
 	})
 	if err != nil {
@@ -821,12 +836,12 @@ func markupCheckRelapsed(c telebot.Context) error {
 		Text: answer.Text,
 	})
 
-	_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "relapsed-saved"))
+	_, err = b.Edit(msg, lt.Text(c, "relapsed-saved"))
 	return err
 }
 
 func markupCheckSurvived(c telebot.Context) error {
-	return c.Edit(localizer.Tr(c.Sender().LanguageCode, "survived-ask-note"), notesMarkup)
+	return c.Edit(lt.Text(c, "survived-ask-note"), notesMarkup)
 }
 
 func markupCheckSurvivedNote(c telebot.Context) error {
@@ -839,7 +854,7 @@ func markupCheckSurvivedNote(c telebot.Context) error {
 
 	msg, answer, err := i.Listen(&cauliflower.ListenOptions{
 		Context: c,
-		Message: localizer.Tr(c.Sender().LanguageCode, "survived-ask-entry"),
+		Message: lt.Text(c, "survived-ask-entry"),
 		Edit:    c.Message(),
 	})
 	if err != nil {
@@ -856,8 +871,8 @@ func markupCheckSurvivedNote(c telebot.Context) error {
 
 	markup := b.NewMarkup()
 
-	public := markup.Data(localizer.Tr(c.Sender().LanguageCode, "survived-button-public"), "public")
-	private := markup.Data(localizer.Tr(c.Sender().LanguageCode, "survived-button-private"), "private")
+	public := markup.Data(lt.Text(c, "survived-button-public"), "public")
+	private := markup.Data(lt.Text(c, "survived-button-private"), "private")
 
 	b.Handle(&public, func(c telebot.Context) error {
 		return handlePrivacy(c, true, number, answer.Text)
@@ -869,7 +884,7 @@ func markupCheckSurvivedNote(c telebot.Context) error {
 
 	markup.Inline(markup.Row(public, private))
 
-	_, err = b.Edit(msg, localizer.Tr(c.Sender().LanguageCode, "survived-ask-public"), markup)
+	_, err = b.Edit(msg, lt.Text(c, "survived-ask-public"), markup)
 	return err
 }
 
@@ -881,10 +896,15 @@ func markupTaskDone(c telebot.Context) error {
 			log.Println(r.Error)
 		}
 
-		taskText := localizer.Tr(c.Sender().LanguageCode, config.Tasks[task.TaskID].Task)
+		taskText := lt.Text(c, config.Tasks[task.TaskID].Task)
 		taskPoints := config.Tasks[task.TaskID].Points
 
-		text := localizer.Tr(c.Sender().LanguageCode, "task-done", taskText, task.CreatedAt.Format("02 Jan 06 15:04"), task.UpdatedAt.Format("02 Jan 06 15:04"), taskPoints)
+		text := lt.Text(c, "task-done", map[string]any{
+			"Task": taskText,
+			"GivenAt": task.CreatedAt.Format("02 Jan 06 15:04"),
+			"DoneAt": task.UpdatedAt.Format("02 Jan 06 15:04"),
+			"Points": taskPoints,
+		})
 
 		return c.Edit(text)
 	}
@@ -921,13 +941,13 @@ func markupAccountActivity(c telebot.Context) error {
 
 	markup := b.NewMarkup()
 
-	back := markup.Data(localizer.Tr(c.Sender().LanguageCode, "pagination-back"), randomString(16))
+	back := markup.Data(lt.Text(c, "pagination-back"), randomString(16))
 
 	b.Handle(&back, commandAccount)
 
 	markup.Inline(markup.Row(back))
 
-	return c.Edit(localizer.Tr(c.Sender().LanguageCode, "account-activity-text", activities), markup)
+	return c.Edit(lt.Text(c, "account-activity-text", activities), markup)
 }
 
 func markupAccountDownload(c telebot.Context) error {
@@ -972,7 +992,7 @@ func markupAccountDownload(c telebot.Context) error {
 
 	document := telebot.Document{
 		File:     telebot.FromReader(bytes.NewReader(marshaled)),
-		Caption:  localizer.Tr(c.Sender().LanguageCode, "account-download-document"),
+		Caption:  lt.Text(c, "account-download-document"),
 		MIME:     "text/yaml",
 		FileName: "data.yml",
 	}
@@ -1049,10 +1069,10 @@ func handlePrivacy(c telebot.Context, isPublic bool, number int, answer string) 
 	var privacy, command string
 
 	if isPublic {
-		privacy = localizer.Tr(c.Sender().LanguageCode, "survived-public")
+		privacy = lt.Text(c, "survived-public")
 		command = "/profile"
 	} else {
-		privacy = localizer.Tr(c.Sender().LanguageCode, "survived-private")
+		privacy = lt.Text(c, "survived-private")
 		command = "/account"
 	}
 
@@ -1064,7 +1084,12 @@ func handlePrivacy(c telebot.Context, isPublic bool, number int, answer string) 
 
 	db.Model(&entry).Where(&entry).Updates(Entry{IsPublic: isPublic})
 
-	return c.Edit(localizer.Tr(c.Sender().LanguageCode, "survived-saved", privacy, entry.Note, command, entry.Text))
+	return c.Edit(lt.Text(c, "survived-saved", map[string]any{
+		"Privacy": privacy,
+		"Note": entry.Note,
+		"Command": command,
+		"Text": entry.Text,
+	}))
 }
 
 func sendPack(c telebot.Context, m Motivation) error {
@@ -1089,7 +1114,7 @@ func sendPack(c telebot.Context, m Motivation) error {
 		c.SendAlbum(album)
 	}
 
-	return c.Send(localizer.Tr(c.Sender().LanguageCode, "motivation-caption", m.Pack, m.Category, m.Language))
+	return c.Send(lt.Text(c, "motivation-caption", m))
 }
 
 func getRank(start time.Time, rank string, offset int) (int, string) {

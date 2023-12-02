@@ -115,3 +115,23 @@ Task:
 - Journey id (foreign key) - int
 - Date (autodate) - time.Time
 - Task id
+
+# Installation
+
+#### install go
+curl https://go.dev/dl/go1.21.3.linux-arm64.tar.gz -o go.tar.gz
+rm -rf /usr/local/go && tar -C /usr/local -xzf go.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+export CGO_ENABLED=1
+
+#### install gcc
+sudo apt install build-essential
+
+#### install gh
+type -p curl >/dev/null || (sudo apt update && sudo apt install curl -y)
+curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg \
+&& sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg \
+&& echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+&& sudo apt update \
+&& sudo apt install gh -y
+export GITHUB_TOKEN=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

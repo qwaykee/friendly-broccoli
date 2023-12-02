@@ -1,137 +1,195 @@
-start-hello: "*🫡 Welcome!*
-      \n\nHello! I'm FriendlyBrocolli, your nofap companion.
-      \n\n*⛰️ Journeys and check-ins*
-      \nEach attempt of quitting is called a journey that you can create with /new
-      \nAfter creating a new journey, you can check-in with /check where you will indicate if you relapsed or not
-      \nIt is recommended to check-in at least once a day when you start
-      \n\n*🛠️ Score, tasks and motivation*
-      \nIf you get an urge, you can do a given /task that will reward you with 2-10 points
-      \nYou can do 3 tasks/day maximum, if you still get urges, you can get /motivation
-      \nEach clean day will reward you with 2 points and each check-in will reward you with 1 point
-      \n\n*👤 Profile and account*
-      \nYou can see your score on your public /profile or your /account
-      \nYour profile will show your public check-ins and basic statistics
-      \nYour account will show all your check-ins and will allow you to download data
-      \n\n*ℹ️ Need help?*
-      \nHopefully, this introduction will help you, you can get more informations and resources with /help
-      \nGood luck in your journey!" # space -> emoji
+start-hello: |
+  *🫡 Welcome!*
+  Hello! I'm FriendlyBrocolli, your nofap companion.
 
-new-already-running-journey: "You already have a running journey, stop it with /check before creating a new one."
-new-ask-streak: "Please enter your current streak in number of days (or /cancel):"
-new-not-a-number: "You didn't type a number, please rerun the command"
-new-ask-rank: "So you've started your journey on %v! What rank system would you like to use?"
-new-saved: "*⛰️ Journey created*\nRank: %v\nRank system: %v\nStart: %v (%v days)\nYou can now /check-in"
+  *⛰️ Journeys and check-ins*
+  Each attempt of quitting is called a journey that you can create with /new
+  After creating a new journey, you can check-in with /check where you will indicate if you relapsed or not
+  It is recommended to check-in at least once a day when you start
 
-check-ask-relapsed: "Welcome back, did you relapse today?"
-check-already-checked-in: "You already checked-in 3 times today, please wait tomorrow before checking-in"
-check-no-journey: "You don't have a running journey, please make one before checking-in (/new)"
-check-button-relapsed: "Yes, I relapsed"
-check-button-survived: "No, continue"
+  *🛠️ Score, tasks and motivation*
+  If you get an urge, you can do a given /task that will reward you with 2-10 points
+  You can do 3 tasks/day maximum, if you still get urges, you can get /motivation
+  Each clean day will reward you with 2 points and each check-in will reward you with 1 point
 
-relapsed: "You'll do better next time, please enter the reason of your relapse (or /cancel):"
-relapsed-saved: "Alright... I'm sorry to see the end of this journey, maybe start a /new one?"
+  *👤 Profile and account*
+  You can see your score on your public /profile or your /account
+  Your profile will show your public check-ins and basic statistics
+  Your account will show all your check-ins and will allow you to download data
 
-survived-ask-note: "Glad to hear that! On a scale of 1-10, how do you feel about today?"
-survived-ask-entry: "Got it! You can type your entry now (how do you feel, what did you do today...)"
-survived-ask-public: "Alright! Your entry has been saved. You can check it anytime in your /account! Would you like to make it public?"
-survived-button-public: "Yes, make it public"
-survived-button-private: "No, make it private"
-survived-private: "Private"
-survived-public: "Public"
-survived-saved: "*📝 %v entry created (%v/10)*\nSee it on my %v\n\n`%v`"
+  *ℹ️ Need help?*
+  Hopefully, this introduction will help you, you can get more informations and resources with /help
+  Good luck in your journey!
 
-err-no-message-received: "No message received before the timeout"
-err-command-canceled: "Command canceled"
-err-button: "There was an error with the button"
+new-already-running-journey: You already have a running journey, stop it with /check before creating a new one.
+new-ask-streak: Please enter your current streak in number of days (or /cancel)
+new-not-a-number: You didn't type a number, please rerun the command
+new-ask-rank: So you've started your journey on {{ .Start }}! What rank system would you like to use?
+new-saved: |
+  *⛰️ Journey created*
+  Rank: {{ .Rank }}
+  Rank system: {{ .RankSystem }}
+  Start: {{ .Start }} ({{ .Days }} days)
+  You can now /check-in
 
-motivation-caption: "📷 %v (%v/%v)"
-motivation-list: "*Categories:*\n{{ range $category, $number := . }}{{ $category }}: {{ $number }} pictures\n{{ end }}"
-motivation-error: "Sorry, I didn't find what you're looking for, did you mean `/motivation %v`?"
+check-ask-relapsed: Welcome back, did you relapse today?
+check-already-checked-in: You already checked-in 3 times today, please wait tomorrow before checking-in
+check-no-journey: You don't have a running journey, please make one before checking-in (/new)
+check-button-relapsed: Yes, I relapsed
+check-button-survived: No, continue
 
-profile-text: "*👤 %v's profile (%v points)*\n\n*%v (%v points)*:\nStart: %v (%v days)\nRank: %v (%v in %v days)\n%v entries - %v tasks\n\n*All journeys (%v)*:\nAverage: %v days\nTotal: %v days\n%v entries - %v tasks"
-profile-text-no-journey: "*👤 No journey for this user*"
-profile-current-journey: "Current journey"
-profile-last-journey: "Last journey"
-profile-button: "See %v's public entries"
-profile-entries: "*📜 {{ .User }}'s {{ .Privacy }} entries (page {{ .Page }}/{{ .MaxPage }})*\n{{ range $e := .Entries }}\n{{ $e.CreatedAtStr }} {{ $e.Note }}/10 ` {{ $e.Text }} `{{ end }}"
-profile-entries-all: "all"
-profile-entries-public: "public"
-profile-entries-private: "private"
+relapsed: You'll do better next time, please enter the reason of your relapse (or /cancel)
+relapsed-saved: Alright... I'm sorry to see the end of this journey, maybe start a /new one?
 
-entries-no-account: "This account doesn't exist, try /fix if you want to see you own entries then retry the command"
+survived-ask-note: Glad to hear that! On a scale of 1-10, how do you feel about today?
+survived-ask-entry: Got it! You can type your entry now (how do you feel, what did you do today...)
+survived-ask-public: Alright! Your entry has been saved. You can check it anytime in your /account! Would you like to make it public?
+survived-button-public: Yes, make it public
+survived-button-private: No, make it private
+survived-private: Private
+survived-public: Public
+survived-saved: |
+  *📝 {{ .Privacy }} entry created ({{ .Note }}/10)*
+  See it on my {{ .Command }}
 
-fix-text: "Successfully fixed"
+  `{{ .Text }}`
 
-account-text: "*🏛️ My account*\n\nScore: %v\nRank: %v (%v in %v days)\nTotal: %v days\nAverage: %v days\n%v entries - %v tasks"
-account-text-no-journey: "*👤 No journey for this user*"
-account-activity: "My activity"
-account-entries: "My entries"
-account-download: "Download my data"
-account-download-document: "📜 Here is all your data!\n\nThere is 4 categories,`activity`, `journeys`, `entries` and `tasks`\n\nActivity is sorted by time and the rest is sorted by type"
-account-activity-text: "*📍 My activity*\n
-{{ range $a := . }}
-      \n{{ $a.Item.CreatedAtStr }}
-      {{ if (eq $a.Type \"journey\") }}
-            New journey
-      {{ else if (eq $a.Type \"entry\") }}
-            Check-in ({{ $a.Item.Note }}/10)
-      {{ else if (eq $a.Type \"task\") }}
-            Task ({{ $a.Item.Text }})
-      {{ end }}
-{{ end }}"
+err-no-message-received: No message received before the timeout
+err-command-canceled: Command canceled
+err-button: There was an error with the button
 
-pagination-next: "Next"
-pagination-previous: "Previous"
-pagination-back: "Back"
+motivation-caption: 📷 {{ .ID }} ({{ .Category }}/{{ .Language }})
+motivation-list: |
+  *Categories:*
+  {{ range $category, $number := . }}{{ $category }}: {{ $number }} pictures
+  {{ end }}
 
-markup-new: "New journey"
-markup-check: "Check-in"
-markup-task: "Task"
-markup-motivation: "Motivation"
-markup-profile: "Profile"
-markup-account: "Account"
+motivation-error: Sorry, I didn't find what you're looking for, did you mean `/motivation {{ . }}`?
 
-task-too-much: "You already done 3 tasks today! Come back tomorrow 🫡" # space -> emoji
-task-cta: "*🎖️ Task: %v*\nGiven at: %v\nDone at: Not done\nClick on the button when you're done!"
-task-done: "*🎖️ Task: %v*\nGiven at: %v\nDone at: %v\nWell done soldier! You've earned %v points!"
-task-unfinished: "You already have a task to complete, finish it before starting a new one"
-task-button: "I'm done"
+profile-text: |
+  *👤 {{ .Username }}'s profile ({{ .TotalScore }} points)*
 
-task-10-pushups: "Do 10 pushups"
+  *{{ .JourneyIsCurrent }} ({{ .CurrentScore }} points)*:
+  Start: {{ .Start }} ({{ .Days }} days)
+  Rank: {{ .CurrentRank }} ({{ .NextRank }} in {{ .DaysLeft }} days)
+  {{ .EntriesCount }} entries - {{ .TasksCount }} tasks
 
-help-text: "*Commands*
-      \n/new • Start a new journey
-      \n/check • Check-in for your current journey
-      \n/motivation • Send a motivational media
-      \n/motivation list • List the categories of media
-      \n/motivation [category/id] • Send a motivational media from the category/the selected media
-      \n/ranks • List the ranks systems
-      \n/ranks [system] • List the full selected rank system
-      \n/profile • See your public profile
-      \n/profile [@user] • See someone else's profile
-      \n/account • See your entries, activity or download your data
-      \n
-      \n*Resources*
-      \n[easypeasy - Quit porn painlessly and immediately](https://easypeasymethod.org/)
-      \neasypeasy is a free online book that you can read in a few hours
-      \nwith concrete instructions to put in place without making any effort or sacrificing anything
-      \nif you've never read a book or don't like books, this one's a breeze to read
-      \n
-      \n*Statistics*
-      \nUsers: %v
-      \nMessage count: %v
-      \nAverage response time: %v
-      \n(Include response time of users)
-      \nUp since %v
-      \n
-      \n*About*
-      \nMade by @qwaykee
-      \nBot's channel: %v
-      \nPersonal channel: %v
-      "
+  *All journeys ({{ .JourneysCount }})*:
+  Average: {{ .AverageDays }} days
+  Total: {{ .TotalDays }} days
+  {{ .TotalEntriesCount }} entries - {{ .TotalTasksCount }} tasks
 
-admin-update: "Successfully updated"
-admin-change-ask-action: "What variable do you want to change? (`nofap-channel`, `personal-channel`, `add-owner`, `remove-owner`)"
-admin-change-ask-value: "Enter the value:"
-admin-change-success: "Successfully updated %v to %v"
-admin-change-failed: "Error while updating %v to %v (Key doesn't exist)"
+profile-text-no-journey: 👤 No journey for this user
+profile-current-journey: Current journey
+profile-last-journey: Last journey
+profile-button: See {{ .Username }}'s public entries
+profile-entries: |
+  *📜 {{ .User }}'s {{ .Privacy }} entries (page {{ .Page }}/{{ .MaxPage }})*
+  {{ range $e := .Entries }}
+  {{ $e.CreatedAtStr }} {{ $e.Note }}/10 ` {{ $e.Text }} `{{ end }}
+
+profile-entries-all: all
+profile-entries-public: public
+profile-entries-private: private
+
+entries-no-account: This account doesn't exist, try /fix if you want to see you own entries then retry the command
+
+fix-text: Successfully fixed
+
+account-text: |
+  *🏛️ My account*
+
+  Score: {{ .Score }}
+  Rank: {{ .CurrentRank }} ({{ .NextRank }} in {{ .DaysLeft }} days)
+  Total: {{ .TotalDays }} days
+  Average: {{ .AverageDays }} days
+  {{ .EntriesCount }} entries - {{ .TasksCount}}  tasks
+
+account-text-no-journey: 👤 No journey for this user
+account-activity: My activity
+account-entries: My entries
+account-download: Download my data
+account-download-document: |
+  📜 Here is all your data!
+  There is 4 categories,`activity`, `journeys`, `entries` and `tasks`
+  Activity is sorted by time and the rest is sorted by type
+
+account-activity-text: |
+  *📍 My activity*
+  
+  {{ range $a := . }}
+    {{ $a.Item.CreatedAtStr }}
+    {{ if (eq $a.Type "journey") }}
+      New journey
+    {{ else if (eq $a.Type "entry") }}
+      Check-in ({{ $a.Item.Note }}/10)
+    {{ else if (eq $a.Type "task") }}
+      Task ({{ $a.Item.Text }})
+    {{ end }}
+  {{ end }}
+
+pagination-next: Next
+pagination-previous: Previous
+pagination-back: Back
+
+markup-new: New journey
+markup-check: Check-in
+markup-task: Task
+markup-motivation: Motivation
+markup-profile: Profile
+markup-account: Account
+
+task-too-much: You already done 3 tasks today! Come back tomorrow 🫡 # space -> emoji
+task-cta: |
+  *🎖️ Task: {{ .Task }}*
+  Given at: {{ .Now }}
+  Done at: Not done
+  Click on the button when you're done!
+
+task-done: |
+  *🎖️ Task: {{ .Task }}*
+  Given at: {{ .GivenAt }}
+  Done at: {{ .DoneAt }}
+  Well done soldier! You've earned {{ .Points }} points!
+
+task-unfinished: You already have a task to complete, finish it before starting a new one
+task-button: I'm done
+
+task-10-pushups: Do 10 pushups
+
+help-text: |
+  *Commands*
+  /new • Start a new journey
+  /check • Check-in for your current journey
+  /motivation • Send a motivational media
+  /motivation list • List the categories of media
+  /motivation [category/id] • Send a motivational media from the category/the selected media
+  /ranks • List the ranks systems
+  /ranks [system] • List the full selected rank system
+  /profile • See your public profile
+  /profile [@user] • See someone else's profile
+  /account • See your entries, activity or download your data
+  
+  *Resources*
+  [easypeasy - Quit porn painlessly and immediately](https://easypeasymethod.org/)
+  easypeasy is a free online book that you can read in a few hours
+  with concrete instructions to put in place without making any effort or sacrificing anything
+  if you've never read a book or don't like books, this one's a breeze to read
+  
+  *Statistics*
+  Users: {{ .UsersCount }}
+  Message count: {{ .MessageCount }}
+  Average response time: {{ .AverageResponseTime }}
+  (Include response time of users)
+  Up since {{ .Uptime }}
+  
+  *About*
+  Made by @qwaykee
+  Bot's channel: {{ .NofapChannel }}
+  Personal channel: {{ .PersonalChannel }}
+
+admin-update: Successfully updated
+admin-change-ask-action: What variable do you want to change? (`nofap-channel`, `personal-channel`, `add-owner`, `remove-owner`)
+admin-change-ask-value: Enter the value
+admin-change-success: Successfully updated {{ .Action }} to {{ .Value }}
+admin-change-failed: Error while updating {{ .Action }} to {{ .Value }} (Key doesn't exist)

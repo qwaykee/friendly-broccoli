@@ -1,137 +1,195 @@
-start-hello: "*🫡 Bienvenue !*
-      \nBonjour ! Je suis FriendlyBrocolli, ton compagnon nofap.
-      \n\n*⛰️ Système de voyage et de pointage*
-      \nChaque tentative s'appelle voyage que tu peux créer avec /new
-      \nAprès avoir créé un nouveau voyage, tu peux pointer avec /check où tu indiquera si tu as rechuté ou non
-      \nIl est recommandé de pointer au moins une fois par jour quand tu commences
-      \n\n*🛠️ Score, tâches et motivation*
-      \nSi tu as une envie, tu peux faire une tâche donnée qui te donnera entre 2 et 10 points avec /task
-      \nTu peux faire 3 tâches par jour au maximum, si tu as encore des envies, tu peux faire /motivation
-      \nChaque jour d'abstinence te rapportera 2 points et chaque pointage te rapportera 1 point
-      \n\n*👤 Profil et compte*
-      \nTu peux voir ton score sur ton /profil public ou ton /compte
-      \nTon profil affichera tes entrées publiques et des statistiques basiques
-      \nTon compte affichera lui toutes entrées et un moyen de télécharger tes données
-      \n\n*ℹ️ Besoin d'aide?*
-      \nEn espérant que cette introduction t'aidera, tu peux avoir plus d'informations et de ressources avec /help
-      \nBonne chance dans ton voyage !" # space -> emoji
+start-hello: |
+  *🫡 Bienvenue !*
+  Bonjour ! Je suis FriendlyBrocolli, ton compagnon nofap.
+  
+  *⛰️ Système de voyage et de pointage*
+  Chaque tentative s'appelle voyage que tu peux créer avec /new
+  Après avoir créé un nouveau voyage, tu peux pointer avec /check où tu indiquera si tu as rechuté ou non
+  Il est recommandé de pointer au moins une fois par jour quand tu commences
+  
+  *🛠️ Score, tâches et motivation*
+  Si tu as une envie, tu peux faire une tâche donnée qui te donnera entre 2 et 10 points avec /task
+  Tu peux faire 3 tâches par jour au maximum, si tu as encore des envies, tu peux faire /motivation
+  Chaque jour d'abstinence te rapportera 2 points et chaque pointage te rapportera 1 point
+  
+  *👤 Profil et compte*
+  Tu peux voir ton score sur ton /profil public ou ton /compte
+  Ton profil affichera tes entrées publiques et des statistiques basiques
+  Ton compte affichera lui toutes entrées et un moyen de télécharger tes données
+  
+  *ℹ️ Besoin d'aide?*
+  En espérant que cette introduction t'aidera, tu peux avoir plus d'informations et de ressources avec /help
+  Bonne chance dans ton voyage !
 
-new-already-running-journey: "Tu as déjà un voyage en cours, arrête-le avec /check avant d'en créer un nouveau."
-new-ask-streak: "Entre le nombre de jour déjà effectués (ou /cancel pour annuler):"
-new-not-a-number: "Tu n'as pas entré un nombre, réexécute la commande (/new)"
-new-ask-rank: "Tu as commencé ton voyage le %v! Quel système de grade veux-tu utiliser?"
-new-saved: "*⛰️ Voyage créé*\nGrade: %v\nSystème de grade: %v\nDébut: %v (%v jours)\nTu peux maintenant pointer (/check)!"
+new-already-running-journey: Tu as déjà un voyage en cours, arrête-le avec /check avant d'en créer un nouveau.
+new-ask-streak: Entre le nombre de jour déjà effectués (ou /cancel pour annuler)
+new-not-a-number: Tu n'as pas entré un nombre, réexécute la commande (/new)
+new-ask-rank: Tu as commencé ton voyage le {{ .Start }}! Quel système de grade veux-tu utiliser?
+new-saved: |
+  *⛰️ Voyage créé*
+  Grade: {{ .Rank }}
+  Système de grade: {{ .RankSystem }}
+  Début: {{ .Start }} ({{ .Days }} jours)
+  Tu peux maintenant pointer (/check)!
 
-check-ask-relapsed: "Bon retour, as-tu craqué aujourd'hui?"
-check-already-checked-in: "Tu as déjà pointé 3 fois aujourd'hui, attends demain avant de re-pointer"
-check-no-journey: "Tu n'as pas de voyage en cours, fais-en un avant de pointer (/new)"
-check-button-relapsed: "Oui, j'ai craqué"
-check-button-survived: "Non, continuer"
+check-ask-relapsed: Bon retour, as-tu craqué aujourd'hui?
+check-already-checked-in: Tu as déjà pointé 3 fois aujourd'hui, attends demain avant de re-pointer
+check-no-journey: Tu n'as pas de voyage en cours, fais-en un avant de pointer (/new)
+check-button-relapsed: Oui, j'ai craqué
+check-button-survived: Non, continuer
 
-relapsed: "Tu feras mieux la prochaine fois, entres la raison de cette rechute (ou /cancel pour annuler):"
-relapsed-saved: "D'accord... Je suis désolé de voir la fin de ce voyage, veux-tu en recommencer un? (/new)"
+relapsed: Tu feras mieux la prochaine fois, entres la raison de cette rechute (ou /cancel pour annuler)
+relapsed-saved: D'accord... Je suis désolé de voir la fin de ce voyage, veux-tu en recommencer un? (/new)
 
-survived-ask-note: "Content d'entendre ça! Sur une échelle de 1 à 10, comment ta journée s'est passée?"
-survived-ask-entry: "Compris! Tu peux taper ton entrée maintenant (comment tu te sens, qu'as-tu fait aujourd'hui...)"
-survived-ask-public: "Très bien! Ton entrée a été enregistrée. Tu peux la voir à n'importe quel moment dans ton compte (/account)! Veux-tu la rendre publique?"
-survived-button-public: "Oui, rends-la publique"
-survived-button-private: "Non, rends-la privée"
-survived-private: "privée"
-survived-public: "publique"
-survived-saved: "*📝 Entrée %v créée (%v/10)*\nLa retrouver dans %v\n\n`%v`"
+survived-ask-note: Content d'entendre ça! Sur une échelle de 1 à 10, comment ta journée s'est passée?
+survived-ask-entry: Compris! Tu peux taper ton entrée maintenant (comment tu te sens, qu'as-tu fait aujourd'hui...)
+survived-ask-public: Très bien! Ton entrée a été enregistrée. Tu peux la voir à n'importe quel moment dans ton compte (/account)! Veux-tu la rendre publique?
+survived-button-public: Oui, rends-la publique
+survived-button-private: Non, rends-la privée
+survived-private: privée
+survived-public: publique
+survived-saved: |
+  *📝 Entrée {{ .Privacy }} créée ({{ .Note }}/10)*
+  La retrouver dans {{ .Command }}
 
-err-no-message-received: "Pas de message reçu dans le temps imparti"
-err-command-canceled: "Commande annulée"
-err-button: "Il y a eu une erreur avec le bouton"
+  `{{ .Text }}`
 
-motivation-caption: "📷 %v (%v/%v)"
-motivation-list: "*Categories:*\n{{ range $category, $number := . }}{{ $category }}: {{ $number }} images\n{{ end }}"
-motivation-error: "Désolé, je n'ai pas trouvé ce que tu recherches, voulais-tu dire `/motivation %v`?"
+err-no-message-received: Pas de message reçu dans le temps imparti
+err-command-canceled: Commande annulée
+err-button: Il y a eu une erreur avec le bouton
 
-profile-text: "*👤 Profil de %v (%v points)*\n\n*%v (%v points)*:\nDébut: %v (%v jours)\nGrade: %v (%v dans %v jours)\n%v pointages - %v tâches\n\n*Tout les voyages (%v)*:\nMoyenne: %v jours\nTotal: %v jours\n%v pointages - %v tâches"
-profile-text-no-journey: "*👤 Aucun voyage pour cet utilisateur*"
-profile-current-journey: "Voyage actuel"
-profile-last-journey: "Dernier voyage"
-profile-button: "Voir les pointages publics de %v"
-profile-entries: "*📜 Entrées de {{ .User }} ({{ .Privacy }} - page {{ .Page }}/{{ .MaxPage }})*\n{{ range $e := .Entries }}\n{{ $e.CreatedAtStr }} {{ $e.Note }}/10 `{{ $e.Text }}`{{ end }}"
-profile-entries-all: "Tout"
-profile-entries-public: "Publiques"
-profile-entries-private: "Privées"
+motivation-caption: 📷 {{ .ID }} ({{ .Category }}/{{ .Language }})
+motivation-list: |
+  *Categories:*
+  {{ range $category, $number := . }}{{ $category }}: {{ $number }} images
+  {{ end }}
 
-entries-no-account: "Ce compte n'existe pas, essaies /fix si tu veux voir tes propres entrées puis réessaies la commande"
+motivation-error: Désolé, je n'ai pas trouvé ce que tu recherches, voulais-tu dire `/motivation {{ . }}`?
 
-fix-text: "Corrigé avec succès"
+profile-text: |
+  *👤 Profil de {{ .Username }} ({{ .TotalScore }} points)*
 
-account-text: "*🏛️ Mon compte*\n\nScore: %v\nGrade: %v (%v dans %v jours)\nTotal: %v jours\nMoyenne: %v jours\n%v pointages - %v tâches"
-account-text-no-journey: "*👤 Aucun voyage pour cet utilisateur*"
-account-activity: "Mon activité"
-account-entries: "Mes pointages"
-account-download: "Télécharger mes données"
-account-download-document: "📜 Voici toutes vos données!\n\nIl y a 4 catégories, `activity` (activité), `journeys` (voyages), `entries` (pointages) et `tasks` (tâches)\n\nActivity est trié par date et le reste est trié par type"
-account-activity-text: "*📍 Mon activité*\n
-{{ range $a := . }}
-      \n{{ $a.Item.CreatedAtStr }}
-      {{ if (eq $a.Type \"journey\") }}
-            Nouveau voyage
-      {{ else if (eq $a.Type \"entry\") }}
-            Pointage ({{ $a.Item.Note }}/10)
-      {{ else if (eq $a.Type \"task\") }}
-            Tâche ({{ $a.Item.Text }})
-      {{ end }}
-{{ end }}"
+  *{{ .JourneyIsCurrent }} ({{ .CurrentScore }} points)*:
+  Début: {{ .Start }} ({{ .Days }} jours)
+  Grade: {{ .CurrentRank }} ({{ .NextRank }} dans {{ .DaysLeft }} jours)
+  {{ .EntriesCount }} pointages - {{ .TasksCount }} tâches
 
-pagination-next: "Suivant"
-pagination-previous: "Précedant"
-pagination-back: "Retour"
+  *Tout les voyages ({{ .JourneysCount }})*:
+  Moyenne: {{ .AverageDays }} jours
+  Total: {{ .TotalDays }} jours
+  {{ .TotalEntriesCount }} pointages - {{ .TotalTasksCount }} tâches
 
-markup-new: "Nouveau voyage"
-markup-check: "Pointer"
-markup-task: "Tâche"
-markup-motivation: "Motivation"
-markup-profile: "Profil"
-markup-account: "Compte"
+profile-text-no-journey: 👤 Aucun voyage pour cet utilisateur
+profile-current-journey: Voyage actuel
+profile-last-journey: Dernier voyage
+profile-button: Voir les pointages publics de {{ .Username }}
+profile-entries: |
+  *📜 Entrées de {{ .User }} ({{ .Privacy }} - page {{ .Page }}/{{ .MaxPage }})*
+  {{ range $e := .Entries }}
+  {{ $e.CreatedAtStr }} {{ $e.Note }}/10 `{{ $e.Text }}`{{ end }}
 
-task-too-much: "Tu as déjà fini 3 tâches aujourd'hui! Reviens demain 🫡" # space -> emoji
-task-cta: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: Non fini\nClique sur le bouton quand tu as fini!"
-task-done: "*🎖️ Tâche: %v*\nDonné le: %v\nFini le: %v\nBien joué soldat! Tu as gagné %v points!"
-task-unfinished: "Tu as déjà une tâche à faire, finis-la avant d'en commencer une autre"
-task-button: "J'ai fini"
+profile-entries-all: Tout
+profile-entries-public: Publiques
+profile-entries-private: Privées
 
-task-10-pushups: "Fait 10 pompes"
+entries-no-account: Ce compte n'existe pas, essaies /fix si tu veux voir tes propres entrées puis réessaies la commande
 
-help-text: "*Commandes*
-      \n/new • Démarrer un nouveau voyage
-      \n/check • Pointer pour le voyage actuel
-      \n/motivation • Envoies un média motivant
-      \n/motivation list • Liste les catégories de médias
-      \n/motivation [category/id] • Envoie un média motivant de la catégories/média sélectionné
-      \n/ranks • Liste les systèmes de grades
-      \n/ranks [system] • Liste en entier le système de grade sélectionné
-      \n/profile • Voir son profil public
-      \n/profile [@user] • Voir le profil public de quelqu'un
-      \n/account • Voir ses pointages, son activité ou télécharger ses données
-      \n
-      \n*Ressources*
-      \n[easypeasy - Arrêter le porno facilement et immédiatement](https://easypeasymethod.org/)
-      \neasypeasy est un livre gratuit en ligne à lire en quelques heures
-      \navec des instructions concrètes à mettre en place sans faire d'effort ou sacrifier quoique ce soit
-      \nsi tu n'as jamais lu de livre ou que tu n'aimes pas les livres, celui-ci est très facile à lire
-      \n
-      \n*Statistiques*
-      \nUtilisateurs: %v
-      \nNombre de messages: %v
-      \nTemps de réponse moyen: %v
-      \n(Inclus les temps de réponse des utilisateurs)
-      \nEn ligne depuis le %v
-      \n
-      \n*À propos*
-      \nFait par @qwaykee
-      \nCanal du bot: %v
-      \nCanal personel: %v
-      "
+fix-text: Corrigé avec succès
 
-admin-update: "Mis à jour avec succès"
-admin-change-ask: "Quelle variable voulez-vous changer? (`nofap-channel`, `personal-channel`, `add-owner`, `remove-owner`)"
-admin-change-ask-value: "Entrez la valeur:"
-admin-change-success: "Mis à jour avec succès %v à %v"
-admin-change-failed: "Erreur lors de la mis à jour de %v à %v (La clé n'existe pas)"
+account-text: |
+  *🏛️ Mon compte*
+
+  Score: {{ .Score }}
+  Grade: {{ .CurrentRank }} ({{ .NextRank }} dans {{ .DaysLeft }} jours)
+  Total: {{ .TotalDays }} jours
+  Moyenne: {{ .AverageDays }} jours
+  {{ .EntriesCount }} pointages - {{ .TasksCount}} tâches
+
+account-text-no-journey: 👤 Aucun voyage pour cet utilisateur
+account-activity: Mon activité
+account-entries: Mes pointages
+account-download: Télécharger mes données
+account-download-document: |
+  📜 Voici toutes vos données!
+  Il y a 4 catégories, `activity` (activité), `journeys` (voyages), `entries` (pointages) et `tasks` (tâches)
+  Activity est trié par date et le reste est trié par type
+
+account-activity-text: |
+  *📍 Mon activité*
+
+  {{ range $a := . }}
+    {{ $a.Item.CreatedAtStr }}
+    {{ if (eq $a.Type "journey") }}
+      Nouveau voyage
+    {{ else if (eq $a.Type "entry") }}
+      Pointage ({{ $a.Item.Note }}/10)
+    {{ else if (eq $a.Type "task") }}
+      Tâche ({{ $a.Item.Text }})
+    {{ end }}
+  {{ end }}
+
+pagination-next: Suivant
+pagination-previous: Précedant
+pagination-back: Retour
+
+markup-new: Nouveau voyage
+markup-check: Pointer
+markup-task: Tâche
+markup-motivation: Motivation
+markup-profile: Profil
+markup-account: Compte
+
+task-too-much: Tu as déjà fini 3 tâches aujourd'hui! Reviens demain 🫡 # space -> emoji
+task-cta: |
+  *🎖️ Tâche: {{ .Task }}*
+  Donné le: {{ .Now }}
+  Fini le: Non fini
+  Clique sur le bouton quand tu as fini!
+
+task-done: |
+  *🎖️ Tâche: {{ .Task }}*
+  Donné le: {{ .GivenAt }}
+  Fini le: {{ .DoneAt }}
+  Bien joué soldat! Tu as gagné {{ .Points }} points!
+
+task-unfinished: Tu as déjà une tâche à faire, finis-la avant d'en commencer une autre
+task-button: J'ai fini
+
+task-10-pushups: Fait 10 pompes
+
+help-text: |
+  *Commandes*
+  /new • Démarrer un nouveau voyage
+  /check • Pointer pour le voyage actuel
+  /motivation • Envoies un média motivant
+  /motivation list • Liste les catégories de médias
+  /motivation [category/id] • Envoie un média motivant de la catégories/média sélectionné
+  /ranks • Liste les systèmes de grades
+  /ranks [system] • Liste en entier le système de grade sélectionné
+  /profile • Voir son profil public
+  /profile [@user] • Voir le profil public de quelqu'un
+  /account • Voir ses pointages, son activité ou télécharger ses données
+  
+  *Ressources*
+  [easypeasy - Arrêter le porno facilement et immédiatement](https://easypeasymethod.org/)
+  easypeasy est un livre gratuit en ligne à lire en quelques heures
+  avec des instructions concrètes à mettre en place sans faire d'effort ou sacrifier quoique ce soit
+  si tu n'as jamais lu de livre ou que tu n'aimes pas les livres, celui-ci est très facile à lire
+  
+  *Statistiques*
+  Utilisateurs: {{ .UsersCount }}
+  Nombre de messages: {{ .MessageCount }}
+  Temps de réponse moyen: {{ .AverageResponseTime }}
+  (Inclus les temps de réponse des utilisateurs)
+  En ligne depuis le {{ .Uptime }}
+  
+  *À propos*
+  Fait par @qwaykee
+  Canal du bot: {{ .NofapChannel }}
+  Canal personnel: {{ .PersonalChannel }}
+
+admin-update: Mis à jour avec succès
+admin-change-ask: Quelle variable voulez-vous changer? (`nofap-channel`, `personal-channel`, `add-owner`, `remove-owner`)
+admin-change-ask-value: Entrez la valeur
+admin-change-success: Mis à jour avec succès {{ .Action }} à {{ .Value }}
+admin-change-failed: Erreur lors de la mis à jour de {{ .Action }} à {{ .Value }} (La clé n'existe pas)
