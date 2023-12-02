@@ -1,36 +1,36 @@
 start-hello: |
-  *🫡 Bienvenue !*
-  Bonjour ! Je suis FriendlyBrocolli, ton compagnon nofap.
-  
-  *⛰️ Système de voyage et de pointage*
-  Chaque tentative s'appelle voyage que tu peux créer avec /new
-  Après avoir créé un nouveau voyage, tu peux pointer avec /check où tu indiquera si tu as rechuté ou non
-  Il est recommandé de pointer au moins une fois par jour quand tu commences
-  
-  *🛠️ Score, tâches et motivation*
-  Si tu as une envie, tu peux faire une tâche donnée qui te donnera entre 2 et 10 points avec /task
-  Tu peux faire 3 tâches par jour au maximum, si tu as encore des envies, tu peux faire /motivation
-  Chaque jour d'abstinence te rapportera 2 points et chaque pointage te rapportera 1 point
-  
-  *👤 Profil et compte*
-  Tu peux voir ton score sur ton /profil public ou ton /compte
-  Ton profil affichera tes entrées publiques et des statistiques basiques
-  Ton compte affichera lui toutes entrées et un moyen de télécharger tes données
-  
-  *ℹ️ Besoin d'aide?*
-  En espérant que cette introduction t'aidera, tu peux avoir plus d'informations et de ressources avec /help
-  Bonne chance dans ton voyage !
+    *🫡 Bienvenue !*
+    Bonjour ! Je suis FriendlyBrocolli, ton compagnon nofap.
+    
+    *⛰️ Système de voyage et de pointage*
+    Chaque tentative s'appelle voyage que tu peux créer avec /new
+    Après avoir créé un nouveau voyage, tu peux pointer avec /check où tu indiquera si tu as rechuté ou non
+    Il est recommandé de pointer au moins une fois par jour quand tu commences
+    
+    *🛠️ Score, tâches et motivation*
+    Si tu as une envie, tu peux faire une tâche donnée qui te donnera entre 2 et 10 points avec /task
+    Tu peux faire 3 tâches par jour au maximum, si tu as encore des envies, tu peux faire /motivation
+    Chaque jour d'abstinence te rapportera 2 points et chaque pointage te rapportera 1 point
+    
+    *👤 Profil et compte*
+    Tu peux voir ton score sur ton /profil public ou ton /compte
+    Ton profil affichera tes entrées publiques et des statistiques basiques
+    Ton compte affichera lui toutes entrées et un moyen de télécharger tes données
+    
+    *ℹ️ Besoin d'aide?*
+    En espérant que cette introduction t'aidera, tu peux avoir plus d'informations et de ressources avec /help
+    Bonne chance dans ton voyage !
 
 new-already-running-journey: Tu as déjà un voyage en cours, arrête-le avec /check avant d'en créer un nouveau.
 new-ask-streak: Entre le nombre de jour déjà effectués (ou /cancel pour annuler)
 new-not-a-number: Tu n'as pas entré un nombre, réexécute la commande (/new)
 new-ask-rank: Tu as commencé ton voyage le {{ .Start }}! Quel système de grade veux-tu utiliser?
 new-saved: |
-  *⛰️ Voyage créé*
-  Grade: {{ .Rank }}
-  Système de grade: {{ .RankSystem }}
-  Début: {{ .Start }} ({{ .Days }} jours)
-  Tu peux maintenant pointer (/check)!
+    *⛰️ Voyage créé*
+    Grade: {{ .Rank }}
+    Système de grade: {{ .RankSystem }}
+    Début: {{ .Start }} ({{ .Days }} jours)
+    Tu peux maintenant pointer (/check)!
 
 check-ask-relapsed: Bon retour, as-tu craqué aujourd'hui?
 check-already-checked-in: Tu as déjà pointé 3 fois aujourd'hui, attends demain avant de re-pointer
@@ -49,10 +49,10 @@ survived-button-private: Non, rends-la privée
 survived-private: privée
 survived-public: publique
 survived-saved: |
-  *📝 Entrée {{ .Privacy }} créée ({{ .Note }}/10)*
-  La retrouver dans {{ .Command }}
-
-  `{{ .Text }}`
+    *📝 Entrée {{ .Privacy }} créée ({{ .Note }}/10)*
+    La retrouver dans {{ .Command }}
+  
+    `{{ .Text }}`
 
 err-no-message-received: Pas de message reçu dans le temps imparti
 err-command-canceled: Commande annulée
@@ -60,33 +60,33 @@ err-button: Il y a eu une erreur avec le bouton
 
 motivation-caption: 📷 {{ .ID }} ({{ .Category }}/{{ .Language }})
 motivation-list: |
-  *Categories:*
-  {{ range $category, $number := . }}{{ $category }}: {{ $number }} images
-  {{ end }}
+    *Categories:*
+    {{ range $category, $number := . }}{{ $category }}: {{ $number }} images
+    {{ end }}
 
 motivation-error: Désolé, je n'ai pas trouvé ce que tu recherches, voulais-tu dire `/motivation {{ . }}`?
 
 profile-text: |
-  *👤 Profil de {{ .Username }} ({{ .TotalScore }} points)*
-
-  *{{ .JourneyIsCurrent }} ({{ .CurrentScore }} points)*:
-  Début: {{ .Start }} ({{ .Days }} jours)
-  Grade: {{ .CurrentRank }} ({{ .NextRank }} dans {{ .DaysLeft }} jours)
-  {{ .EntriesCount }} pointages - {{ .TasksCount }} tâches
-
-  *Tout les voyages ({{ .JourneysCount }})*:
-  Moyenne: {{ .AverageDays }} jours
-  Total: {{ .TotalDays }} jours
-  {{ .TotalEntriesCount }} pointages - {{ .TotalTasksCount }} tâches
+    *👤 Profil de {{ .Username }} ({{ .TotalScore }} points)*
+  
+    *{{ .JourneyIsCurrent }} ({{ .CurrentScore }} points)*:
+    Début: {{ .Start }} ({{ .Days }} jours)
+    Grade: {{ .CurrentRank }} ({{ .NextRank }} dans {{ .DaysLeft }} jours)
+    {{ .EntriesCount }} pointages - {{ .TasksCount }} tâches
+  
+    *Tout les voyages ({{ .JourneysCount }})*:
+    Moyenne: {{ .AverageDays }} jours
+    Total: {{ .TotalDays }} jours
+    {{ .TotalEntriesCount }} pointages - {{ .TotalTasksCount }} tâches
 
 profile-text-no-journey: 👤 Aucun voyage pour cet utilisateur
 profile-current-journey: Voyage actuel
 profile-last-journey: Dernier voyage
 profile-button: Voir les pointages publics de {{ .Username }}
 profile-entries: |
-  *📜 Entrées de {{ .User }} ({{ .Privacy }} - page {{ .Page }}/{{ .MaxPage }})*
-  {{ range $e := .Entries }}
-  {{ $e.CreatedAtStr }} {{ $e.Note }}/10 `{{ $e.Text }}`{{ end }}
+    *📜 Entrées de {{ .User }} ({{ .Privacy }} - page {{ .Page }}/{{ .MaxPage }})*
+    {{ range $e := .Entries }}
+    {{ $e.CreatedAtStr }} {{ $e.Note }}/10 `{{ $e.Text }}`{{ end }}
 
 profile-entries-all: Tout
 profile-entries-public: Publiques
@@ -97,36 +97,36 @@ entries-no-account: Ce compte n'existe pas, essaies /fix si tu veux voir tes pro
 fix-text: Corrigé avec succès
 
 account-text: |
-  *🏛️ Mon compte*
-
-  Score: {{ .Score }}
-  Grade: {{ .CurrentRank }} ({{ .NextRank }} dans {{ .DaysLeft }} jours)
-  Total: {{ .TotalDays }} jours
-  Moyenne: {{ .AverageDays }} jours
-  {{ .EntriesCount }} pointages - {{ .TasksCount}} tâches
+    *🏛️ Mon compte*
+  
+    Score: {{ .Score }}
+    Grade: {{ .CurrentRank }} ({{ .NextRank }} dans {{ .DaysLeft }} jours)
+    Total: {{ .TotalDays }} jours
+    Moyenne: {{ .AverageDays }} jours
+    {{ .EntriesCount }} pointages - {{ .TasksCount}} tâches
 
 account-text-no-journey: 👤 Aucun voyage pour cet utilisateur
 account-activity: Mon activité
 account-entries: Mes pointages
 account-download: Télécharger mes données
 account-download-document: |
-  📜 Voici toutes vos données!
-  Il y a 4 catégories, `activity` (activité), `journeys` (voyages), `entries` (pointages) et `tasks` (tâches)
-  Activity est trié par date et le reste est trié par type
+    📜 Voici toutes vos données!
+    Il y a 4 catégories, `activity` (activité), `journeys` (voyages), `entries` (pointages) et `tasks` (tâches)
+    Activity est trié par date et le reste est trié par type
 
 account-activity-text: |
-  *📍 Mon activité*
-
-  {{ range $a := . }}
-    {{ $a.Item.CreatedAtStr }}
-    {{ if (eq $a.Type "journey") }}
-      Nouveau voyage
-    {{ else if (eq $a.Type "entry") }}
-      Pointage ({{ $a.Item.Note }}/10)
-    {{ else if (eq $a.Type "task") }}
-      Tâche ({{ $a.Item.Text }})
+    *📍 Mon activité*
+  
+    {{ range $a := . }}
+      {{ $a.Item.CreatedAtStr }}
+      {{ if (eq $a.Type "journey") }}
+        Nouveau voyage
+      {{ else if (eq $a.Type "entry") }}
+        Pointage ({{ $a.Item.Note }}/10)
+      {{ else if (eq $a.Type "task") }}
+        Tâche ({{ $a.Item.Text }})
+      {{ end }}
     {{ end }}
-  {{ end }}
 
 pagination-next: Suivant
 pagination-previous: Précedant
@@ -141,16 +141,16 @@ markup-account: Compte
 
 task-too-much: Tu as déjà fini 3 tâches aujourd'hui! Reviens demain 🫡 # space -> emoji
 task-cta: |
-  *🎖️ Tâche: {{ .Task }}*
-  Donné le: {{ .Now }}
-  Fini le: Non fini
-  Clique sur le bouton quand tu as fini!
+    *🎖️ Tâche: {{ .Task }}*
+    Donné le: {{ .Now }}
+    Fini le: Non fini
+    Clique sur le bouton quand tu as fini!
 
 task-done: |
-  *🎖️ Tâche: {{ .Task }}*
-  Donné le: {{ .GivenAt }}
-  Fini le: {{ .DoneAt }}
-  Bien joué soldat! Tu as gagné {{ .Points }} points!
+    *🎖️ Tâche: {{ .Task }}*
+    Donné le: {{ .GivenAt }}
+    Fini le: {{ .DoneAt }}
+    Bien joué soldat! Tu as gagné {{ .Points }} points!
 
 task-unfinished: Tu as déjà une tâche à faire, finis-la avant d'en commencer une autre
 task-button: J'ai fini
@@ -158,35 +158,35 @@ task-button: J'ai fini
 task-10-pushups: Fait 10 pompes
 
 help-text: |
-  *Commandes*
-  /new • Démarrer un nouveau voyage
-  /check • Pointer pour le voyage actuel
-  /motivation • Envoies un média motivant
-  /motivation list • Liste les catégories de médias
-  /motivation [category/id] • Envoie un média motivant de la catégories/média sélectionné
-  /ranks • Liste les systèmes de grades
-  /ranks [system] • Liste en entier le système de grade sélectionné
-  /profile • Voir son profil public
-  /profile [@user] • Voir le profil public de quelqu'un
-  /account • Voir ses pointages, son activité ou télécharger ses données
-  
-  *Ressources*
-  [easypeasy - Arrêter le porno facilement et immédiatement](https://easypeasymethod.org/)
-  easypeasy est un livre gratuit en ligne à lire en quelques heures
-  avec des instructions concrètes à mettre en place sans faire d'effort ou sacrifier quoique ce soit
-  si tu n'as jamais lu de livre ou que tu n'aimes pas les livres, celui-ci est très facile à lire
-  
-  *Statistiques*
-  Utilisateurs: {{ .UsersCount }}
-  Nombre de messages: {{ .MessageCount }}
-  Temps de réponse moyen: {{ .AverageResponseTime }}
-  (Inclus les temps de réponse des utilisateurs)
-  En ligne depuis le {{ .Uptime }}
-  
-  *À propos*
-  Fait par @qwaykee
-  Canal du bot: {{ .NofapChannel }}
-  Canal personnel: {{ .PersonalChannel }}
+    *Commandes*
+    /new • Démarrer un nouveau voyage
+    /check • Pointer pour le voyage actuel
+    /motivation • Envoies un média motivant
+    /motivation list • Liste les catégories de médias
+    /motivation [category/id] • Envoie un média motivant de la catégories/média sélectionné
+    /ranks • Liste les systèmes de grades
+    /ranks [system] • Liste en entier le système de grade sélectionné
+    /profile • Voir son profil public
+    /profile [@user] • Voir le profil public de quelqu'un
+    /account • Voir ses pointages, son activité ou télécharger ses données
+    
+    *Ressources*
+    [easypeasy - Arrêter le porno facilement et immédiatement](https://easypeasymethod.org/)
+    easypeasy est un livre gratuit en ligne à lire en quelques heures
+    avec des instructions concrètes à mettre en place sans faire d'effort ou sacrifier quoique ce soit
+    si tu n'as jamais lu de livre ou que tu n'aimes pas les livres, celui-ci est très facile à lire
+    
+    *Statistiques*
+    Utilisateurs: {{ .UsersCount }}
+    Nombre de messages: {{ .MessageCount }}
+    Temps de réponse moyen: {{ .AverageResponseTime }}
+    (Inclus les temps de réponse des utilisateurs)
+    En ligne depuis le {{ .Uptime }}
+    
+    *À propos*
+    Fait par @qwaykee
+    Canal du bot: {{ .NofapChannel }}
+    Canal personnel: {{ .PersonalChannel }}
 
 admin-update: Mis à jour avec succès
 admin-change-ask: Quelle variable voulez-vous changer? (`nofap-channel`, `personal-channel`, `add-owner`, `remove-owner`)

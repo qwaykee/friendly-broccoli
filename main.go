@@ -142,7 +142,7 @@ func main() {
 			}
 
 			err := next(c)
-			
+
 			responseTime = append(responseTime, time.Now().Sub(start))
 
 			return err
@@ -804,21 +804,12 @@ func markupNew(c telebot.Context) error {
 
 	_, rank := getRank(j.Start, j.RankSystem, 0)
 
-	log.Println(lt.Text(c, "new-saved", map[string]any{
+	return c.Edit(lt.Text(c, "new-saved", map[string]any{
 		"Rank": rank,
 		"RankSystem": j.RankSystem,
 		"Start": j.Start.Format("02 Jan 06"),
 		"Days": int(time.Now().Sub(j.Start).Hours()/24),
 	}))
-
-	text := lt.Text(c, "new-saved", map[string]any{
-		"Rank": rank,
-		"RankSystem": j.RankSystem,
-		"Start": j.Start.Format("02 Jan 06"),
-		"Days": int(time.Now().Sub(j.Start).Hours()/24),
-	})
-
-	return c.Edit(text)
 }
 
 func markupCheckRelapsed(c telebot.Context) error {

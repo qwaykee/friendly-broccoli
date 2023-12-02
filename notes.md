@@ -116,6 +116,9 @@ Task:
 - Date (autodate) - time.Time
 - Task id
 
+Locales:
+- Use double indentation to escape colons (:)
+
 # Installation
 
 #### install go
