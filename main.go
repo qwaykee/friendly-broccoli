@@ -41,6 +41,9 @@ var (
 	start                 time.Time
 	usersLanguage 		  = make(map[int64]string)
 
+	// config
+	owners []int64
+
 	//go:embed config.yml
 	configFile []byte
 )
@@ -53,6 +56,10 @@ func init() {
 	lt, err = layout.New("bot.yml")
 	if err != nil {
 		log.Fatalf("layout: %v", err)
+	}
+
+	if err := lt.UnmarshalKey("owners", owners); err != nil {
+		log.Fatalf("layout owners: %v", err)
 	}
 
 	// load config
@@ -130,7 +137,7 @@ func init() {
 }
 
 func main() {
-	// handle message count and response time
+	// handle message count, response time and language
 	b.Use(func(next telebot.HandlerFunc) telebot.HandlerFunc {
 		return func(c telebot.Context) error {
 			start := time.Now()
@@ -220,7 +227,7 @@ func main() {
 				return err
 			}
 
-			config.Owners = append(config.Owners, owner)
+			owners = append(owners, owner)
 
 		case "remove-owner":
 			owner, err := strconv.ParseInt(value.Text, 10, 64)
@@ -230,7 +237,7 @@ func main() {
 				return err
 			}
 
-			removeSlice(config.Owners, owner)
+			removeSlice(owners, owner)
 
 		default:
 			_, err = b.Edit(msg, lt.Text(c, "admin-change-failed", map[string]any{

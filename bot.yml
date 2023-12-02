@@ -10,6 +10,7 @@ config:
   # motivation_path: motivation
   # nofap_channel: 't.me/nofapbotchannel'
   # personal_channel: 't.me/qwaykeechannel'
+  tasks_indexes: [ abc, def ]
 
 commands:
   /start: Start the bot
