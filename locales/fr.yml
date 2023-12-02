@@ -25,7 +25,7 @@ new-already-running-journey: Tu as déjà un voyage en cours, arrête-le avec /c
 new-ask-streak: Entre le nombre de jour déjà effectués (ou /cancel pour annuler)
 new-not-a-number: Tu n'as pas entré un nombre, réexécute la commande (/new)
 new-ask-rank: Tu as commencé ton voyage le {{ .Start }}! Quel système de grade veux-tu utiliser?
-new-saved: |
+new-saved: |-
     *⛰️ Voyage créé*
     Grade: {{ .Rank }}
     Système de grade: {{ .RankSystem }}

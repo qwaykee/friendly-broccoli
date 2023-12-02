@@ -47,6 +47,7 @@ Get android device cpu architecture: adb shell getprop ro.product.cpu.abi
 [ ] Use layout.yml
 [ ] Add motivation path to layout and update update()
 [x] Add locales logic
+[ ] Fix empty message (colon conflict in locales)
 
 # Structure
 Commands:

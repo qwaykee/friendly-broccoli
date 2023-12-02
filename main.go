@@ -58,7 +58,7 @@ func init() {
 		log.Fatalf("layout: %v", err)
 	}
 
-	if err := lt.UnmarshalKey("owners", owners); err != nil {
+	if err := lt.UnmarshalKey("owners", &owners); err != nil {
 		log.Fatalf("layout owners: %v", err)
 	}
 
