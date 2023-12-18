@@ -28,7 +28,7 @@ Get android device cpu architecture: adb shell getprop ro.product.cpu.abi
 [x] /ranks
 [x] /ranks [rank]
 [x] /help (channels, ~~donation~~)
-[ ] /add-task
+[x] /add-task
 [x] Fix profile and /check relapsed update db doesn't work
 [x] Fix profile public entries markup
 [x] Task max 3/day
@@ -43,11 +43,15 @@ Get android device cpu architecture: adb shell getprop ro.product.cpu.abi
 [-] /account download edit message instead of sending new one
 [ ] README.md
 [ ] Move tasks to db
+[ ] Move motivations to db
+[ ] Add map[motivation id]telebot.image
 [ ] Add custom language
-[ ] Use layout.yml
+[x] Use layout.yml
 [ ] Add motivation path to layout and update update()
 [x] Add locales logic
 [ ] Fix empty message (colon conflict in locales)
+[ ] Remove comment (l.212 - 217)
+[-] Split commands into different files
 
 # Structure
 Commands:

@@ -1,25 +1,25 @@
 start-hello: |
-    *🫡 Welcome!*
-    Hello! I'm FriendlyBrocolli, your nofap companion.
+  *🫡 Welcome!*
+  Hello! I'm FriendlyBrocolli, your nofap companion.
   
-    *⛰️ Journeys and check-ins*
-    Each attempt of quitting is called a journey that you can create with /new
-    After creating a new journey, you can check-in with /check where you will indicate if you relapsed or not
-    It is recommended to check-in at least once a day when you start
+  *⛰️ Journeys and check-ins*
+  Each attempt of quitting is called a journey that you can create with /new
+  After creating a new journey, you can check-in with /check where you will indicate if you relapsed or not
+  It is recommended to check-in at least once a day when you start
   
-    *🛠️ Score, tasks and motivation*
-    If you get an urge, you can do a given /task that will reward you with 2-10 points
-    You can do 3 tasks/day maximum, if you still get urges, you can get /motivation
-    Each clean day will reward you with 2 points and each check-in will reward you with 1 point
+  *🛠️ Score, tasks and motivation*
+  If you get an urge, you can do a given /task that will reward you with 2-10 points
+  You can do 3 tasks/day maximum, if you still get urges, you can get /motivation
+  Each clean day will reward you with 2 points and each check-in will reward you with 1 point
   
-    *👤 Profile and account*
-    You can see your score on your public /profile or your /account
-    Your profile will show your public check-ins and basic statistics
-    Your account will show all your check-ins and will allow you to download data
+  *👤 Profile and account*
+  You can see your score on your public /profile or your /account
+  Your profile will show your public check-ins and basic statistics
+  Your account will show all your check-ins and will allow you to download data
   
-    *ℹ️ Need help?*
-    Hopefully, this introduction will help you, you can get more informations and resources with /help
-    Good luck in your journey!
+  *ℹ️ Need help?*
+  Hopefully, this introduction will help you, you can get more informations and resources with /help
+  Good luck in your journey!
 
 new-already-running-journey: You already have a running journey, stop it with /check before creating a new one.
 new-ask-streak: Please enter your current streak in number of days (or /cancel)
@@ -49,10 +49,10 @@ survived-button-private: No, make it private
 survived-private: Private
 survived-public: Public
 survived-saved: |
-    *📝 {{ .Privacy }} entry created ({{ .Note }}/10)*
-    See it on my {{ .Command }}
+  *📝 {{ .Privacy }} entry created ({{ .Note }}/10)*
+  See it on my {{ .Command }}
   
-    `{{ .Text }}`
+  `{{ .Text }}`
 
 err-no-message-received: No message received before the timeout
 err-command-canceled: Command canceled
@@ -60,9 +60,9 @@ err-button: There was an error with the button
 
 motivation-caption: 📷 {{ .ID }} ({{ .Category }}/{{ .Language }})
 motivation-list: |
-    *Categories:*
-    {{ range $category, $number := . }}{{ $category }}: {{ $number }} pictures
-    {{ end }}
+  *Categories:*
+  {{ range $category, $count := . }}{{ $category }}: {{ $count }} pictures
+  {{ end }}
 
 motivation-error: Sorry, I didn't find what you're looking for, did you mean `/motivation {{ . }}`?
 
@@ -84,9 +84,9 @@ profile-current-journey: Current journey
 profile-last-journey: Last journey
 profile-button: See {{ .Username }}'s public entries
 profile-entries: |
-    *📜 {{ .User }}'s {{ .Privacy }} entries (page {{ .Page }}/{{ .MaxPage }})*
-    {{ range $e := .Entries }}
-    {{ $e.CreatedAtStr }} {{ $e.Note }}/10 ` {{ $e.Text }} `{{ end }}
+  *📜 {{ .User }}'s {{ .Privacy }} entries (page {{ .Page }}/{{ .MaxPage }})*
+  {{ range .Entries }}
+  {{ .CreatedAtStr }} {{ .Note }}/10 ` {{ .Text }} `{{ end }}
 
 profile-entries-all: all
 profile-entries-public: public
@@ -110,23 +110,23 @@ account-activity: My activity
 account-entries: My entries
 account-download: Download my data
 account-download-document: |
-    📜 Here is all your data!
-    There is 4 categories,`activity`, `journeys`, `entries` and `tasks`
-    Activity is sorted by time and the rest is sorted by type
+  📜 Here is all your data!
+  There is 4 categories,`activity`, `journeys`, `entries` and `tasks`
+  Activity is sorted by time and the rest is sorted by type
 
 account-activity-text: |
-    *📍 My activity*
-    
-    {{ range $a := . }}
-      {{ $a.Item.CreatedAtStr }}
-      {{ if (eq $a.Type "journey") }}
-        New journey
-      {{ else if (eq $a.Type "entry") }}
-        Check-in ({{ $a.Item.Note }}/10)
-      {{ else if (eq $a.Type "task") }}
-        Task ({{ $a.Item.Text }})
-      {{ end }}
+  *📍 My activity*
+  
+  {{ range . }}
+    {{ .Item.CreatedAtStr }}
+    {{ if (eq .Type "journey") }}
+      New journey
+    {{ else if (eq .Type "entry") }}
+      Check-in ({{ .Item.Note }}/10)
+    {{ else if (eq .Type "task") }}
+      Task ({{ .Item.Text }})
     {{ end }}
+  {{ end }}
 
 pagination-next: Next
 pagination-previous: Previous
@@ -141,16 +141,16 @@ markup-account: Account
 
 task-too-much: You already done 3 tasks today! Come back tomorrow 🫡 # space -> emoji
 task-cta: |
-    *🎖️ Task: {{ .Task }}*
-    Given at: {{ .Now }}
-    Done at: Not done
-    Click on the button when you're done!
+  *🎖️ Task: {{ .Task }}*
+  Given at: {{ .Now }}
+  Done at: Not done
+  Click on the button when you're done!
 
 task-done: |
-    *🎖️ Task: {{ .Task }}*
-    Given at: {{ .GivenAt }}
-    Done at: {{ .DoneAt }}
-    Well done soldier! You've earned {{ .Points }} points!
+  *🎖️ Task: {{ .Task }}*
+  Given at: {{ .GivenAt }}
+  Done at: {{ .DoneAt }}
+  Well done soldier! You've earned {{ .Points }} points!
 
 task-unfinished: You already have a task to complete, finish it before starting a new one
 task-button: I'm done
@@ -193,3 +193,4 @@ admin-change-ask-action: What variable do you want to change? (`nofap-channel`, 
 admin-change-ask-value: Enter the value
 admin-change-success: Successfully updated {{ .Action }} to {{ .Value }}
 admin-change-failed: Error while updating {{ .Action }} to {{ .Value }} (Key doesn't exist)
+admin-error-convert-atoi: Error while converting {{ . }} in int

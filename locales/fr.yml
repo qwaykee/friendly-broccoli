@@ -13,7 +13,7 @@ start-hello: |
     Chaque jour d'abstinence te rapportera 2 points et chaque pointage te rapportera 1 point
     
     *👤 Profil et compte*
-    Tu peux voir ton score sur ton /profil public ou ton /compte
+    Tu peux voir ton score sur ton profil public (/profile) ou ton compte (/account)
     Ton profil affichera tes entrées publiques et des statistiques basiques
     Ton compte affichera lui toutes entrées et un moyen de télécharger tes données
     
@@ -61,7 +61,7 @@ err-button: Il y a eu une erreur avec le bouton
 motivation-caption: 📷 {{ .ID }} ({{ .Category }}/{{ .Language }})
 motivation-list: |
     *Categories:*
-    {{ range $category, $number := . }}{{ $category }}: {{ $number }} images
+    {{ range $category, $count := . }}{{ $category }}: {{ $count }} images
     {{ end }}
 
 motivation-error: Désolé, je n'ai pas trouvé ce que tu recherches, voulais-tu dire `/motivation {{ . }}`?
@@ -85,8 +85,8 @@ profile-last-journey: Dernier voyage
 profile-button: Voir les pointages publics de {{ .Username }}
 profile-entries: |
     *📜 Entrées de {{ .User }} ({{ .Privacy }} - page {{ .Page }}/{{ .MaxPage }})*
-    {{ range $e := .Entries }}
-    {{ $e.CreatedAtStr }} {{ $e.Note }}/10 `{{ $e.Text }}`{{ end }}
+    {{ range .Entries }}
+    {{ .CreatedAtStr }} {{ .Note }}/10 `{{ .Text }}`{{ end }}
 
 profile-entries-all: Tout
 profile-entries-public: Publiques
@@ -110,23 +110,23 @@ account-activity: Mon activité
 account-entries: Mes pointages
 account-download: Télécharger mes données
 account-download-document: |
-    📜 Voici toutes vos données!
-    Il y a 4 catégories, `activity` (activité), `journeys` (voyages), `entries` (pointages) et `tasks` (tâches)
-    Activity est trié par date et le reste est trié par type
+  📜 Voici toutes vos données!
+  Il y a 4 catégories, `activity` (activité), `journeys` (voyages), `entries` (pointages) et `tasks` (tâches)
+  Activity est trié par date et le reste est trié par type
 
 account-activity-text: |
-    *📍 Mon activité*
+  *📍 Mon activité*
   
-    {{ range $a := . }}
-      {{ $a.Item.CreatedAtStr }}
-      {{ if (eq $a.Type "journey") }}
-        Nouveau voyage
-      {{ else if (eq $a.Type "entry") }}
-        Pointage ({{ $a.Item.Note }}/10)
-      {{ else if (eq $a.Type "task") }}
-        Tâche ({{ $a.Item.Text }})
-      {{ end }}
+  {{ range . }}
+    {{ .Item.CreatedAtStr }}
+    {{ if (eq .Type "journey") }}
+      Nouveau voyage
+    {{ else if (eq .Type "entry") }}
+      Pointage ({{ .Item.Note }}/10)
+    {{ else if (eq .Type "task") }}
+      Tâche ({{ .Item.Text }})
     {{ end }}
+  {{ end }}
 
 pagination-next: Suivant
 pagination-previous: Précedant
@@ -141,16 +141,16 @@ markup-account: Compte
 
 task-too-much: Tu as déjà fini 3 tâches aujourd'hui! Reviens demain 🫡 # space -> emoji
 task-cta: |
-    *🎖️ Tâche: {{ .Task }}*
-    Donné le: {{ .Now }}
-    Fini le: Non fini
-    Clique sur le bouton quand tu as fini!
+  *🎖️ Tâche: {{ .Task }}*
+  Donné le: {{ .Now }}
+  Fini le: Non fini
+  Clique sur le bouton quand tu as fini!
 
 task-done: |
-    *🎖️ Tâche: {{ .Task }}*
-    Donné le: {{ .GivenAt }}
-    Fini le: {{ .DoneAt }}
-    Bien joué soldat! Tu as gagné {{ .Points }} points!
+  *🎖️ Tâche: {{ .Task }}*
+  Donné le: {{ .GivenAt }}
+  Fini le: {{ .DoneAt }}
+  Bien joué soldat! Tu as gagné {{ .Points }} points!
 
 task-unfinished: Tu as déjà une tâche à faire, finis-la avant d'en commencer une autre
 task-button: J'ai fini
@@ -193,3 +193,4 @@ admin-change-ask: Quelle variable voulez-vous changer? (`nofap-channel`, `person
 admin-change-ask-value: Entrez la valeur
 admin-change-success: Mis à jour avec succès {{ .Action }} à {{ .Value }}
 admin-change-failed: Erreur lors de la mis à jour de {{ .Action }} à {{ .Value }} (La clé n'existe pas)
+admin-error-convert-atoi: Erreur lors de la conversion de {{ . }} en int

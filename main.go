@@ -26,7 +26,6 @@ import (
 )
 
 var (
-	config    Config
 	db        *gorm.DB
 	lt        *layout.Layout
 	b         *telebot.Bot
@@ -43,16 +42,14 @@ var (
 
 	// config
 	owners []int64
-
-	//go:embed config.yml
-	configFile []byte
+	ranks = make(map[string]Rank)
 )
 
 func init() {
 	var err error
 	log.Println("initialization")
 
-	// load layout and config
+	// load layout
 	lt, err = layout.New("bot.yml")
 	if err != nil {
 		log.Fatalf("layout: %v", err)
@@ -62,9 +59,8 @@ func init() {
 		log.Fatalf("layout owners: %v", err)
 	}
 
-	// load config
-	if err := yaml.Unmarshal(configFile, &config); err != nil {
-		log.Fatal(err)
+	if err := lt.UnmarshalKey("ranks", &ranks); err != nil {
+		log.Fatalf("layout ranks: %v", err)
 	}
 
 	// initialize database
@@ -120,8 +116,8 @@ func init() {
 		log.Fatalf("keyboard: %v", err)
 	}
 
-	data := make([]string, len(config.Ranks))
-	for _, rank := range config.Ranks {data = append(data, rank.Name)}
+	data := make([]string, len(ranks))
+	for _, rank := range ranks {data = append(data, rank.Name)}
 
 	ranksMarkup, err = i.Keyboard(&cauliflower.KeyboardOptions{
 		Keyboard: cauliflower.Inline,
@@ -184,7 +180,7 @@ func main() {
 
 	admin := b.Group()
 
-	admin.Use(middleware.Whitelist(config.Owners...))
+	admin.Use(middleware.Whitelist(owners...))
 
 	admin.Handle("/update", func(c telebot.Context) error {
 		if err := update(); err != nil {
@@ -213,11 +209,11 @@ func main() {
 		}
 
 		switch action.Text {
-		case "nofap-channel":
-			config.NofapChannel = value.Text
-
-		case "personal-channel":
-			config.PersonalChannel = value.Text
+		//case "nofap-channel":
+		//	lt.Config.v.Set("channels.bot", value.Text)
+//
+		//case "personal-channel":
+		//	lt.Config.v.Set("channels.personal", value.Text)
 
 		case "add-owner":
 			owner, err := strconv.ParseInt(value.Text, 10, 64)
@@ -255,7 +251,17 @@ func main() {
 	})
 
 	admin.Handle("/add-task", func(c telebot.Context) error {
-		return nil
+		points, err := strconv.Atoi(c.Args()[0])
+		if err != nil {
+			c.Send(lt.Text(c, "admin-error-convert-atoi", c.Args()[0]))
+		}
+
+		db.Create(&TaskData{
+			Points: points,
+			Task: c.Args()[1],
+		})
+
+		return c.Send(lt.Text(c, "admin-update"))
 	})
 
 	admin.Handle("/send", func(c telebot.Context) error {
@@ -590,8 +596,9 @@ func commandTask(c telebot.Context) error {
 		return err
 	}
 
-	taskID := rand.Intn(len(config.Tasks))
-	taskText := lt.Text(c, config.Tasks[taskID].Task)
+	var taskData TaskData
+	db.Order("RANDOM()").Take(&taskData)
+	taskText := lt.Text(c, taskData.Task)
 
 	text := lt.Text(c, "task-cta",map[string]any{
 		"Task": taskText,
@@ -615,7 +622,7 @@ func commandTask(c telebot.Context) error {
 		CreatedAtStr: time.Now().Format("02 Jan 06 15:04"),
 		UserID:       c.Sender().ID,
 		MessageID:    msg.ID,
-		TaskID:       taskID,
+		TaskID:       int(taskData.ID),
 		Text:         taskText,
 		IsDone:       false,
 	})
@@ -746,7 +753,7 @@ func commandRanks(c telebot.Context) error {
 	var text string
 
 	if len(c.Args()) > 0 {
-		rank := config.Ranks[c.Args()[0]]
+		rank := ranks[c.Args()[0]]
 
 		text += "*" + rank.Name + "*\n"
 
@@ -757,7 +764,7 @@ func commandRanks(c telebot.Context) error {
 			text += strconv.Itoa(level) + ": " + rank.Levels[level] + "\n"
 		}
 	} else {
-		for _, rank := range config.Ranks {
+		for _, rank := range ranks {
 			text += "*" + rank.Name + "*\n"
 
 			sortedLevels := maps.Keys(rank.Levels)
@@ -790,8 +797,8 @@ func commandHelp(c telebot.Context) error {
 		"MessageCount": messageCount,
 		"AverageResponseTime": averageResponseTime,
 		"Uptime": start.Format("02 Jan 06 15:04"),
-		"NofapChannel": config.NofapChannel,
-		"PersonalChannel": config.PersonalChannel,
+		"NofapChannel": lt.String("channels.bot"),
+		"PersonalChannel": lt.String("channels.personal"),
 	}))
 }
 
@@ -894,14 +901,14 @@ func markupTaskDone(c telebot.Context) error {
 			log.Println(r.Error)
 		}
 
-		taskText := lt.Text(c, config.Tasks[task.TaskID].Task)
-		taskPoints := config.Tasks[task.TaskID].Points
+		var taskData TaskData
+		db.First(&taskData, task.TaskID)
 
 		text := lt.Text(c, "task-done", map[string]any{
-			"Task": taskText,
+			"Task": task.Text,
 			"GivenAt": task.CreatedAt.Format("02 Jan 06 15:04"),
 			"DoneAt": task.UpdatedAt.Format("02 Jan 06 15:04"),
-			"Points": taskPoints,
+			"Points": taskData.Points,
 		})
 
 		return c.Edit(text)
@@ -1117,7 +1124,7 @@ func sendPack(c telebot.Context, m Motivation) error {
 
 func getRank(start time.Time, rank string, offset int) (int, string) {
 	days := int(time.Now().Sub(start).Hours() / 24)
-	levels := config.Ranks[strings.ToLower(rank)].Levels
+	levels := ranks[strings.ToLower(rank)].Levels
 
 	keys := maps.Keys(levels)
 	sort.Ints(keys)
@@ -1173,7 +1180,10 @@ func calculateScore(userID int64, allJourneys bool) int {
 	}
 
 	for _, task := range tasks {
-		score += config.Tasks[task.TaskID].Points
+		var taskData TaskData
+		db.First(&taskData, task.TaskID)
+
+		score += taskData.Points
 	}
 
 	score += int(entries)
